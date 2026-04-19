@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-04-15T21:04:49.460Z",
+  "profileUrl": "https://www.instagram.com/soudaviribas/",
+  "profileInfo": {
+    "username": "soudaviribas",
+    "bio": "soudaviribas\nDavi Ribas\n641 posts\n163 mil seguidores\n531 seguindo\nTorna-te quem tu és!\nRenascentista brasileiro, autor best-seller Marketing Ideológico e fundador @eterbrasiloficial\nsoudaviribas\nSeguido(a) por omatheusdelucca, eterbrasiloficial e outras 38 pessoas | soudaviribas\nDavi Ribas\n641 posts\n163 mil seguidores\n531 seguindo\nTorna-te quem tu és!\nRenascentista brasileiro, autor best-seller Marketing Ideológico e fundador @eterbrasiloficial\nsoudaviribas\nSeguido(a) por omatheusdelucca, eterbrasiloficial e outras 38 pessoas | soudaviribas\nDavi Ribas\n641 posts\n163 mil seguidores\n531 seguindo"
+  },
+  "stats": {
+    "totalPostLinks": 11,
+    "allImages": 20,
+    "imagesWithAlt": 20
+  },
+  "posts": [
+    {
+      "index": 1,
+      "url": "https://www.instagram.com/soudaviribas/p/C76ulpcu-5W/",
+      "postId": "C76ulpcu-5W"
+    },
+    {
+      "index": 2,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DXIkM_QEatm/",
+      "postId": "DXIkM_QEatm"
+    },
+    {
+      "index": 3,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DXIS3WxERro/",
+      "postId": "DXIS3WxERro"
+    },
+    {
+      "index": 4,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DXHgjA0kfF8/",
+      "postId": "DXHgjA0kfF8"
+    },
+    {
+      "index": 5,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DXGARVkER8T/",
+      "postId": "DXGARVkER8T"
+    },
+    {
+      "index": 6,
+      "url": "https://www.instagram.com/soudaviribas/p/DXDI2SUFkOt/",
+      "postId": "DXDI2SUFkOt"
+    },
+    {
+      "index": 7,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DXA6dJdEaZL/",
+      "postId": "DXA6dJdEaZL"
+    },
+    {
+      "index": 8,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DW-FcvlkZuo/",
+      "postId": "DW-FcvlkZuo"
+    },
+    {
+      "index": 9,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DW7USVTkWN1/",
+      "postId": "DW7USVTkWN1"
+    },
+    {
+      "index": 10,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DW5KQlmESdC/",
+      "postId": "DW5KQlmESdC"
+    },
+    {
+      "index": 11,
+      "url": "https://www.instagram.com/eterbrasiloficial/p/DW4K_J4EVVc/",
+      "postId": "DW4K_J4EVVc"
+    }
+  ],
+  "design": {
+    "backgroundColor": "rgb(255, 255, 255)",
+    "textColor": "rgb(12, 16, 20)",
+    "headerBg": "rgba(0, 0, 0, 0)"
+  },
+  "typography": {
+    "primaryFont": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "fontSize": "14px",
+    "headingFont": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+  }
+}

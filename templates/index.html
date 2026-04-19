@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎡 Carousel Copy Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .output-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .output-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .carousel-output {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.active {
+            display: block;
+        }
+
+        .status.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .status.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .refinement-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .refinement-section.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎡 Carousel Copy Generator</h1>
+            <p>Gere carrosséis Instagram de alta conversão com IA</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Form -->
+            <div class="card">
+                <h2>📝 Informações</h2>
+
+                <div class="form-group">
+                    <label for="topic">Tópico/Oferta *</label>
+                    <input type="text" id="topic" placeholder="Ex: Curso de Python para iniciantes">
+                </div>
+
+                <div class="form-group">
+                    <label for="audience">Público-alvo *</label>
+                    <textarea id="audience" placeholder="Ex: Pessoas querendo mudar de carreira, 25-40 anos"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="tone">Tom (opcional)</label>
+                    <select id="tone">
+                        <option value="">Auto-detectar</option>
+                        <option value="casual">Casual</option>
+                        <option value="profissional">Profissional</option>
+                        <option value="urgente">Urgente</option>
+                        <option value="motivacional">Motivacional</option>
+                        <option value="autêntico">Autêntico</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="type">Tipo de Carrossel (opcional)</label>
+                    <select id="type">
+                        <option value="">Auto-selecionar</option>
+                        <option value="transformação">Transformação</option>
+                        <option value="autoridade">Autoridade</option>
+                        <option value="ideológico">Ideológico</option>
+                        <option value="educacional">Educacional</option>
+                        <option value="vendas">Vendas</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="context">Contexto Adicional (opcional)</label>
+                    <textarea id="context" placeholder="Qualquer detalhe importante..."></textarea>
+                </div>
+
+                <button class="btn-primary" onclick="generateCarousel()">
+                    ✨ Gerar Carrossel
+                </button>
+            </div>
+
+            <!-- Status -->
+            <div class="card">
+                <h2>📊 Status</h2>
+
+                <div id="status" class="status"></div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Gerando carrossel com IA...</p>
+                </div>
+
+                <div id="info-panel" class="empty-state">
+                    <p>Preencha o formulário e clique em "Gerar Carrossel"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output -->
+        <div class="output-section">
+            <h2>🎨 Carrossel Gerado</h2>
+
+            <div id="carousel-output" class="carousel-output">
+                <div class="empty-state">
+                    <p>O carrossel aparecerá aqui...</p>
+                </div>
+            </div>
+
+            <!-- Refinement -->
+            <div class="refinement-section" id="refinement-section">
+                <h3 style="margin-bottom: 15px; color: #667eea;">🔄 Refinar o Carrossel</h3>
+                <div class="form-group">
+                    <textarea id="feedback" placeholder="O que você quer melhorar? (Ex: Adicione mais urgência, inclua social proof, etc)"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="refineCarousel()">Refinar</button>
+                    <button class="btn-secondary" onclick="downloadCarousel()">💾 Baixar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status active ${type}`;
+            setTimeout(() => {
+                statusEl.classList.remove('active');
+            }, 5000);
+        }
+
+        function showLoading(show = true) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        async function generateCarousel() {
+            const topic = document.getElementById('topic').value.trim();
+            const audience = document.getElementById('audience').value.trim();
+            const tone = document.getElementById('tone').value || null;
+            const type = document.getElementById('type').value || null;
+            const context = document.getElementById('context').value || null;
+
+            if (!topic || !audience) {
+                showStatus('Tópico e público são obrigatórios!', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        topic,
+                        audience,
+                        tone,
+                        type,
+                        context
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('carousel-output').innerHTML =
+                        `<pre>${escapeHtml(data.carousel)}</pre>`;
+                    document.getElementById('refinement-section').classList.add('active');
+                    showStatus('✅ Carrossel gerado com sucesso!', 'success');
+                } else {
+                    showStatus(`Erro: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Erro: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function refineCarousel() {
+            const feedback = document.getElementById('feedback').value.trim();
+
+            if (!feedback) {
+                showStatus('Digite o feedback para refinamento!', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch('/api/refine', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ feedback })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('carousel-output').innerHTML =
+                        `<pre>${escapeHtml(data.carousel)}</pre>`;
+                    document.getElementById('feedback').value = '';
+                    showStatus('✅ Carrossel refinado com sucesso!', 'success');
+                } else {
+                    showStatus(`Erro: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Erro: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function downloadCarousel() {
+            const topic = document.getElementById('topic').value || 'carrossel';
+
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ filename: topic })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Criar blob e baixar
+                    const blob = new Blob([data.content], { type: 'text/markdown' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = data.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showStatus('✅ Arquivo baixado!', 'success');
+                } else {
+                    showStatus(`Erro: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Erro: ${error.message}`, 'error');
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>

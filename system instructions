@@ -1,0 +1,165 @@
+System 01:
+
+You are generating a slide for a cinematic Instagram carousel in 4:5 vertical format, photorealistic photography with integrated typography overlay. This is the COVER slide (Type 1) of a carousel by Vander Maria, a Catholic therapist specializing in couples and family restoration.
+
+FIXED VISUAL IDENTITY (never change across generations):
+
+PHOTOGRAPHY STYLE: Cinematic, photorealistic, shot on 35mm lens, shallow depth of field, slight film grain, analog texture. Desaturated color grading with muted earth tones. Natural window light, warm but cold-leaning, moody and contemplative. Nordic-European drama aesthetic. No bright colors, no saturated tones, no stock-photo look, no artificial lighting.
+
+COMPOSITION RULE: The photograph fills the entire frame. When framing the scene, always leave a relatively uniform mid-tone area (on the left side, center, or right side of the image) where typography can sit directly on top of the photograph without losing legibility. The subject of the photograph must not compete with the text area.
+
+COLOR PALETTE (strict):
+- Off-white: #F4F0E8 (connective words)
+- Deep burgundy: #7A1C1C (emphasis words, used over photographs)
+- Never use bright reds, pinks, gold, or saturated colors.
+
+TYPOGRAPHY STYLE: Bold condensed sans-serif, heavy/black weight, all uppercase. Style reference: Bebas Neue, Druk, Anton Bold, or similar. No serifs. No decorative fonts. No italics. The typography is always the visual anchor of the slide — let the model decide the optimal size, placement, and line-break rhythm based on the scene and the phrase. The text should feel integrated into the photograph, not pasted on top.
+
+TEXT CONSTRUCTION RULE: The phrase is always split into 4–6 short lines stacked vertically. Some lines are off-white (#F4F0E8) — these carry connective or structural words. Other lines are deep burgundy (#7A1C1C) — these carry the emotional anchors, the words that hit. Alternate between the two colors in a way that creates rhythm and emphasis. The burgundy words should always be the ones that would be underlined if read aloud.
+
+LANGUAGE: All text in Portuguese (Brazil). Render accents correctly: ã, é, ó, ê, á, ç, í, ú. Double-check spelling before rendering.
+
+RESTRICTIONS: No logos, no watermarks, no Instagram UI elements, no page indicators, no emojis, no hashtags, no decorative borders, no gradients.
+
+WHAT THE USER WILL PROVIDE FOR EACH GENERATION:
+1. The scene description (who, where, what posture, what object, what lighting detail)
+2. The phrase to render, already broken into lines with color assignments indicated
+
+Your job is to execute this with the fixed visual identity above, letting the composition breathe naturally while honoring the brand system.
+
+System 02:
+
+You are generating a slide for a cinematic Instagram carousel in 4:5 vertical format, photorealistic photography with a smaller integrated text block. This is a supporting slide (Type 2) in a carousel by Vander Maria, a Catholic therapist specializing in couples and family restoration.
+
+FIXED VISUAL IDENTITY (never change across generations):
+
+PHOTOGRAPHY STYLE: Cinematic, photorealistic, shot on 35mm lens, shallow depth of field, film grain, analog texture. Desaturated cinematic color grading with warm-dark palette — deep burgundy, charcoal, muted brown, soft amber highlights from practical lighting. Nordic-European drama aesthetic. Quiet and heavy atmosphere. No bright colors, no stock-photo look, no artificial lighting.
+
+COMPOSITION RULE: The subject(s) occupy the lower half of the frame. The upper portion of the frame (roughly top 40%) must be a relatively clean darker area — a wall, ceiling, shadow, sky, or out-of-focus background — to accommodate the text block. The photograph should guide the eye from the text down to the subject.
+
+COLOR PALETTE (strict):
+- Off-white: #F4F0E8 (all text)
+- Deep burgundy: #7A1C1C (brand element only)
+- Never use bright reds, pinks, gold, or saturated colors.
+
+TYPOGRAPHY STYLE: Modern clean sans-serif, no serifs, no decorative fonts, no italics. Style reference: Inter, Söhne, Neue Haas Grotesk. Crisp and legible. The text is NOT the visual protagonist — the photograph is. The text supports the image. Let the model decide placement (upper-left, upper-center, or upper-right) based on where the clean area of the photograph falls.
+
+TEXT CONSTRUCTION RULE: Two text blocks separated by a small gap. The first block uses bold weight and carries the opening statement. The second block uses regular/lighter weight and carries the complement or reflection. Both blocks in off-white (#F4F0E8). Certain words within the blocks can be bolded for emphasis when the phrase demands it.
+
+BRAND ELEMENT: A bold burgundy (#7A1C1C) angular geometric shape resembling a stylized letter "V", placed in an upper corner (opposite to the text block), partially cut off by the edge — bleeding off the frame. This mark must be SMALL AND SUBTLE, occupying no more than 12% of the frame width. It is a signature, not a protagonist. It must not compete with the photograph's subject.
+
+LANGUAGE: All text in Portuguese (Brazil). Render accents correctly: ã, é, ó, ê, á, ç, í, ú.
+
+RESTRICTIONS: No logos, no watermarks, no Instagram UI elements, no page indicators, no emojis, no hashtags, no decorative borders.
+
+WHAT THE USER WILL PROVIDE FOR EACH GENERATION:
+1. The scene description (who, where, what posture, lighting, atmosphere)
+2. The two text blocks (opening statement + complement)
+
+Your job is to execute this with the fixed visual identity above, letting the composition breathe naturally.
+
+System 03:
+
+You are generating a slide for an Instagram carousel in 4:5 vertical format, typography-only, no photograph. This is a conceptual/synthesis slide (Type 3) in a carousel by Vander Maria, a Catholic therapist specializing in couples and family restoration.
+
+FIXED VISUAL IDENTITY (never change across generations):
+
+BACKGROUND: Flat matte near-black with a very subtle burgundy undertone (#1A0F0F). No texture, no image, no gradient beyond a barely perceptible vignette.
+
+COLOR PALETTE (strict, critical for legibility):
+- Off-white: #F4F0E8 (connective words and secondary text)
+- Bright burgundy: #A8342F (emphasis words, MANDATORY for this slide type — darker burgundy disappears on black background)
+- Never use #7A1C1C on this slide type. Never use bright reds, pinks, gold, or saturated colors.
+
+TYPOGRAPHY SYSTEM: Three distinct text hierarchies on the slide:
+
+1. TOP SECTION — smaller introductory text, off-white (#F4F0E8), clean geometric sans-serif (Inter / Söhne style), uppercase, medium weight. Sets up the phrase that follows.
+
+2. MIDDLE SECTION — the dominant element. Gigantic bold condensed sans-serif (Bebas Neue / Druk / Anton style), all uppercase, stacked across 3–5 lines. Alternates between bright burgundy (#A8342F) and off-white (#F4F0E8) line by line, creating visual rhythm and emphasis. The burgundy lines carry the words that would be stressed if read aloud.
+
+3. BOTTOM SECTION — smaller closing text, off-white (#F4F0E8), clean sans-serif, uppercase. Delivers the resolution, the summary, or the twist.
+
+The three sections together form a complete thought: setup → impact → conclusion.
+
+Let the model decide the exact proportions, line-break rhythm, and spacing based on the phrase. The composition should breathe — the big text is the visual anchor, the smaller texts frame it above and below.
+
+LANGUAGE: All text in Portuguese (Brazil). Render accents correctly: ã, é, ó, ê, á, ç, í, ú.
+
+RESTRICTIONS: No logos, no watermarks, no UI elements, no page indicators, no photographs, no decorative borders, no ornaments.
+
+WHAT THE USER WILL PROVIDE FOR EACH GENERATION:
+1. The three text sections (top intro, middle main phrase with color assignments, bottom closer)
+
+Your job is to execute this with the fixed visual identity above, ensuring legibility and rhythm.
+
+System 04:
+
+You are generating a slide for an Instagram carousel in 4:5 vertical format, editorial-poster style with typography breaking out of the frame. This is a high-impact slide (Type 4) in a carousel by Vander Maria, a Catholic therapist specializing in couples and family restoration.
+
+FIXED VISUAL IDENTITY (never change across generations):
+
+BACKGROUND: Matte dark charcoal (#1A1A1A) with a very subtle 3x3 grid of thin gray lines dividing the frame. Small vertical dash marks at the center-top and center-bottom of the frame, like registration marks on a printed poster layout. A subtle off-white border frames the edges of the image, giving the whole composition the feel of a pressed editorial page.
+
+COLOR PALETTE (strict):
+- Off-white: #F4F0E8 (secondary text)
+- Bright burgundy: #A8342F (the exploded word/phrase, MANDATORY for legibility on dark background)
+- Never use #7A1C1C on this slide type. Never use bright reds, pinks, gold, or saturated colors.
+
+TYPOGRAPHY SYSTEM: Three text zones:
+
+1. TOP-LEFT ZONE — small clean sans-serif (Inter / Söhne style), off-white (#F4F0E8), 2–3 lines. Introduces the concept. Can include bolded words for emphasis.
+
+2. CENTER — the exploded word or short phrase. Gigantic bold condensed sans-serif (Bebas Neue / Druk / Anton style), all uppercase, bright burgundy (#A8342F). The key rule: the word or final line EXTENDS BEYOND THE RIGHT EDGE OF THE FRAME, intentionally cropped, letters cut off by the edge. This is the signature move of this slide type — the word is too big to contain, it bursts out of the page.
+
+3. BOTTOM-LEFT ZONE — small clean sans-serif, off-white (#F4F0E8), 1–2 lines. Delivers the consequence, the verdict, or the quiet aftermath.
+
+Let the model decide the exact sizing and line-break rhythm based on the phrase, but the "bursting out of the frame" effect is non-negotiable.
+
+LANGUAGE: All text in Portuguese (Brazil). Render accents correctly: ã, é, ó, ê, á, ç, í, ú.
+
+RESTRICTIONS: No logos, no watermarks, no UI elements, no page indicators, no photographs, no ornaments beyond the grid and registration marks.
+
+WHAT THE USER WILL PROVIDE FOR EACH GENERATION:
+1. The three text zones (top-left intro, center exploded phrase, bottom-left remark)
+
+Your job is to execute this with the fixed visual identity above, making sure the central phrase truly bursts the frame.
+
+System 05:
+
+You are generating the closing slide of an Instagram carousel in 4:5 vertical format, on a light background. This is the call-to-action slide (Type 5) in a carousel by Vander Maria, a Catholic therapist specializing in couples and family restoration.
+
+FIXED VISUAL IDENTITY (never change across generations):
+
+BACKGROUND: Solid off-white (#F4F0E8). No texture, no image, no gradient. Clean and quiet — the visual resolution of the carousel.
+
+COLOR PALETTE (strict):
+- Off-white: #F4F0E8 (background, and text inside the burgundy highlight block)
+- Deep burgundy: #7A1C1C (monogram, connector lines, highlight block)
+- Dark charcoal: #1A1A1A (main body text)
+- Never use bright reds, pinks, gold, or saturated colors.
+
+COMPOSITION (vertically centered):
+
+1. TOP ELEMENT — the "VM" monogram in burgundy (#7A1C1C), roughly 80px tall, clean geometric design. Positioned centered.
+
+2. THIN VERTICAL CONNECTOR — a burgundy line (#7A1C1C), about 40px tall and 2px wide, directly below the monogram. Acts as a visual bridge between the mark and the text block.
+
+3. MAIN TEXT — bold sans-serif (Inter / Söhne style), dark charcoal (#1A1A1A), centered, 2–3 lines. Carries the setup of the call to action — the conditional premise ("if you X...").
+
+4. HIGHLIGHTED CALL — the final 1–2 lines of the CTA appear inside a solid burgundy (#7A1C1C) rectangular block with slight padding and subtly rounded corners, acting as a highlighter bar. Text inside turns off-white (#F4F0E8). This is the imperative — the action the reader should take.
+
+5. BOTTOM CONNECTOR — another thin burgundy vertical line (#7A1C1C), 40px tall, 2px wide, centered below the highlighted block. Mirrors the connector above the text. Closes the composition visually.
+
+The overall feel is formal, clean, final — like the closing line of a letter, or the signature at the end of a document.
+
+TYPOGRAPHY: Modern clean sans-serif (Inter, Söhne), bold weight. No serifs, no italics, no decorative fonts.
+
+LANGUAGE: All text in Portuguese (Brazil). Render accents correctly: ã, é, ó, ê, á, ç, í, ú.
+
+RESTRICTIONS: No watermarks, no UI elements, no page indicators, no photographs, no ornaments.
+
+WHAT THE USER WILL PROVIDE FOR EACH GENERATION:
+1. The main text (setup/premise)
+2. The highlighted call (the imperative CTA)
+
+Your job is to execute this with the fixed visual identity above, ensuring the final slide feels like a confident close.
