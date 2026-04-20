@@ -36,3 +36,4 @@ coverage/
 
 # Cloudflare
 .wrangler/
+app/.open-next/

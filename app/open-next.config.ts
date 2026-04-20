@@ -2,7 +2,7 @@ export default {
   default: {
     override: {
       wrapper: 'cloudflare-edge',
-      converter: 'cloudflare',
+      converter: 'edge',
       incrementalCache: 'cloudflare-kv',
       tagCache: 'cloudflare-kv',
       queue: 'cloudflare-queue',
