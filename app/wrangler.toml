@@ -1,5 +1,4 @@
 name = "carrossel"
-type = "service"
 main = ".open-next/server/index.mjs"
 compatibility_date = "2024-01-01"
 
