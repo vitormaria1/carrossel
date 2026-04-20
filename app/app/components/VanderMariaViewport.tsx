@@ -32,7 +32,7 @@ export function VanderMariaViewport() {
         // Renderizar todos em paralelo
         const base64Array = await Promise.all(
           cardsVanderMaria.map((card, i) =>
-            renderVanderMariaCardToBase64(card)
+            renderVanderMariaCardToBase64(card as any)
               .then(base64 => {
                 setRenderingState(prev => ({ ...prev, current: i + 1 }));
                 return base64;
