@@ -13,9 +13,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { VANDER_SYSTEM_PROMPT_IMAGE } from '@/lib/vander-maria/constants';
 
 const GEMINI_API_KEY = process.env.VANDER_GEMINI_API_KEY;
-if (!GEMINI_API_KEY) {
-  throw new Error('VANDER_GEMINI_API_KEY não configurada em .env');
-}
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent';
 
 interface GenerateImageRequest {
