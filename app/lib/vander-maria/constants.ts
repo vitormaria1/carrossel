@@ -94,12 +94,12 @@ CRITICAL: You MUST return valid JSON in this EXACT format:
     },
     {
       "slideType": 3,
-      "textInScreen": "three distinct sections separated by \\\\n\\\\n: intro, GIANT middle, closer",
+      "textInScreen": "three distinct sections separated by \\\\n\\\\n: intro, GIANT middle, closer (TOTAL: ~200 characters max)",
       "dynamics": ""
     },
     {
       "slideType": 4,
-      "textInScreen": "three distinct sections: top-left intro, CENTER WORD, bottom remark - separated by \\\\n\\\\n",
+      "textInScreen": "three distinct sections: top-left intro, CENTER WORD, bottom remark - separated by \\\\n\\\\n (TOTAL: ~200 characters max)",
       "dynamics": ""
     },
     {
