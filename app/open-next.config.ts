@@ -1,6 +1,4 @@
-import type { OpenNextConfig } from 'open-next/types/open-next';
-
-const config = {
+export default {
   default: {
     override: {
       wrapper: 'cloudflare-edge',
@@ -11,6 +9,4 @@ const config = {
       imageOptimization: 'cloudflare',
     },
   },
-} satisfies OpenNextConfig;
-
-export default config;
+};
