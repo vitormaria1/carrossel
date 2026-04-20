@@ -1,3 +1,8 @@
+# This file is for local wrangler development only
+# Cloudflare Pages uses GitHub integration - build settings are in the dashboard
+
 name = "carrossel"
-pages_build_output_dir = "app/.next"
 compatibility_date = "2024-01-01"
+
+[env.production]
+name = "carrossel"
