@@ -42,7 +42,7 @@ IMPORTANT:
     const geminiResponse = await fetch(GEMINI_ENDPOINT, {
       method: 'POST',
       headers: {
-        'x-goog-api-key': GEMINI_API_KEY,
+        'x-goog-api-key': GEMINI_API_KEY || '',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
