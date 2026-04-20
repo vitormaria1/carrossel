@@ -1,0 +1,21 @@
+name = "carrossel"
+type = "service"
+main = ".open-next/server/index.mjs"
+compatibility_date = "2024-01-01"
+
+# Environment
+[env.production]
+name = "carrossel"
+
+# Build
+build = { command = "npm run build" }
+
+# KV Namespace for incremental cache
+[[kv_namespaces]]
+binding = "KV"
+id = "carrossel-kv"
+preview_id = "carrossel-kv-preview"
+
+# Cloudflare Pages Functions
+[site]
+bucket = ".open-next/static"
