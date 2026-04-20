@@ -3,7 +3,6 @@
 ## 🚀 Pré-requisitos
 - Conta Cloudflare ativa
 - Repositório GitHub conectado
-- CLI Wrangler instalada (opcional): `npm install -g wrangler`
 
 ## 📋 Checklist Pré-Deploy
 
@@ -36,7 +35,7 @@ Na Cloudflare Pages, defina:
 
 - **Framework preset**: Next.js
 - **Build command**: `cd app && npm run build`
-- **Build output directory**: `app/.next/standalone`
+- **Build output directory**: `app/.next`
 - **Root directory**: `.` (raiz do repo)
 
 ## 🔐 Passo 4: Environment Variables

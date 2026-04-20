@@ -1,6 +1,7 @@
-# Environment variables
+# Environment variables (NEVER commit with real values)
 .env
 .env.local
+.env.production
 .env.*.local
 
 # Next.js
