@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { InputForm } from './components/InputForm';
 import { CardCanvas } from './components/CardCanvas';
 import { CardViewport } from './components/CardViewport';
