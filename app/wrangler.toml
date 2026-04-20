@@ -1,0 +1,9 @@
+name = "carrossel-vander-maria"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# Pages deployment
+pages_build_caching_enabled = true
+
+[env.production]
+name = "carrossel-vander-maria"
