@@ -53,7 +53,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateImage
         userPrompt = `RENDER this text on a cinematic photograph (Type 1):\n\n${textInScreen}\n\nPhoto mood: ${dynamics || 'Intimate, moody, professional'}`;
         break;
       case 2:
-        userPrompt = `RENDER this text in top 40% with cinematic photo in bottom 60% (Type 2):\n\n${textInScreen}\n\nPhoto mood: ${dynamics || 'Continuation of narrative, sharp focus'}`;
+        userPrompt = `GENERATE INSTAGRAM CARD TYPE 2: TEXT + IMAGE HARMONY
+
+Canvas: 4320x5760px
+
+Text Content to Render:
+${textInScreen}
+
+Layout Instructions (CRITICAL):
+1. INTEGRATED DESIGN: Text and image should flow together, NOT separated
+2. Text rendered OVER or INTEGRATED with cinematic photograph (not in isolated box)
+3. Text positioned to harmonize with image composition (use dark areas for readability)
+4. Cinematic photograph: continuation of narrative, sharp focus, professional
+5. Color: Text in WHITE (#F4F0E8) or OFF-WHITE with strong contrast against image
+6. Typography: Clean, modern sans-serif (Inter/Söhne style), readable size
+7. Overlay style: Semi-transparent or placed where image naturally supports text readability
+8. TOTAL COMPOSITION: Single unified visual, not top/bottom split
+
+Photo mood: ${dynamics || 'Continuation of narrative, sharp focus'}
+
+CRITICAL: Generate a COMPLETE IMAGE with text and image INTEGRATED harmoniously. NOT BLANK.`;
         break;
       case 3:
         userPrompt = `GENERATE INSTAGRAM CARD TYPE 3: PURE TYPOGRAPHY
