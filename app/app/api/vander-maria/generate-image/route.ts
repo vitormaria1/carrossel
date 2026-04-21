@@ -58,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateImage
       case 3:
         userPrompt = `GENERATE INSTAGRAM CARD TYPE 3: PURE TYPOGRAPHY
 
-Canvas: 2160x2880px
+Canvas: 4320x5760px
 Background: NEAR-BLACK (#1A0F0F) - must fill entire canvas
 
 Text Content to Render:
@@ -78,7 +78,7 @@ CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK.`;
       case 4:
         userPrompt = `GENERATE INSTAGRAM CARD TYPE 4: HIGH-IMPACT EDITORIAL
 
-Canvas: 2160x2880px
+Canvas: 4320x5760px
 Background: CHARCOAL (#1A1A1A) with subtle grid overlay
 
 Text Content to Render:
@@ -98,7 +98,7 @@ CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK.`;
       case 5:
         userPrompt = `GENERATE INSTAGRAM CARD TYPE 5: CTA SLIDE
 
-Canvas: 2160x2880px
+Canvas: 4320x5760px
 Background: OFF-WHITE (#F4F0E8) - must fill entire canvas
 
 Text Content to Render:

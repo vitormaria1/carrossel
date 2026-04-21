@@ -10,6 +10,7 @@ import { VanderMariaCard } from './types';
 interface RenderOptions {
   profileImg?: HTMLImageElement | null;
   cardImg?: HTMLImageElement | null;
+  watermarkImg?: HTMLImageElement | null;
 }
 
 /**
@@ -23,8 +24,8 @@ export function renderVanderType1(
   card: VanderMariaCard,
   options: RenderOptions = {}
 ): void {
-  canvas.width = 2160;
-  canvas.height = 2880;
+  canvas.width = 4320;
+  canvas.height = 5760;
 
   // Draw the image from Gemini (text is already rendered on it)
   if (options.cardImg) {
@@ -34,6 +35,9 @@ export function renderVanderType1(
     ctx.fillStyle = VANDER_COLORS.deepBurgundy;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+
+  // Add watermark
+  addWatermark(ctx, canvas, options.watermarkImg);
 }
 
 /**
@@ -47,8 +51,8 @@ export function renderVanderType2(
   card: VanderMariaCard,
   options: RenderOptions = {}
 ): void {
-  canvas.width = 1080;
-  canvas.height = 1440;
+  canvas.width = 4320;
+  canvas.height = 5760;
 
   // Draw the image from Gemini (text is already rendered on it)
   if (options.cardImg) {
@@ -58,6 +62,9 @@ export function renderVanderType2(
     ctx.fillStyle = VANDER_COLORS.charcoal;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+
+  // Add watermark
+  addWatermark(ctx, canvas, options.watermarkImg);
 }
 
 /**
@@ -70,8 +77,8 @@ export function renderVanderType3(
   card: VanderMariaCard,
   options: RenderOptions = {}
 ): void {
-  canvas.width = 1080;
-  canvas.height = 1440;
+  canvas.width = 4320;
+  canvas.height = 5760;
 
   // Draw the image from Gemini
   if (options.cardImg) {
@@ -81,6 +88,9 @@ export function renderVanderType3(
     ctx.fillStyle = VANDER_COLORS.nearBlack;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+
+  // Add watermark
+  addWatermark(ctx, canvas, options.watermarkImg);
 }
 
 /**
@@ -93,8 +103,8 @@ export function renderVanderType4(
   card: VanderMariaCard,
   options: RenderOptions = {}
 ): void {
-  canvas.width = 1080;
-  canvas.height = 1440;
+  canvas.width = 4320;
+  canvas.height = 5760;
 
   // Draw the image from Gemini
   if (options.cardImg) {
@@ -104,6 +114,9 @@ export function renderVanderType4(
     ctx.fillStyle = VANDER_COLORS.charcoal;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+
+  // Add watermark
+  addWatermark(ctx, canvas, options.watermarkImg);
 }
 
 /**
@@ -116,8 +129,8 @@ export function renderVanderType5(
   card: VanderMariaCard,
   options: RenderOptions = {}
 ): void {
-  canvas.width = 1080;
-  canvas.height = 1440;
+  canvas.width = 4320;
+  canvas.height = 5760;
 
   // Draw the image from Gemini
   if (options.cardImg) {
@@ -127,9 +140,33 @@ export function renderVanderType5(
     ctx.fillStyle = VANDER_COLORS.offWhite;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+
+  // Add watermark
+  addWatermark(ctx, canvas, options.watermarkImg);
 }
 
 // HELPER FUNCTIONS
+
+function addWatermark(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  watermarkImg?: HTMLImageElement | null
+): void {
+  if (!watermarkImg) return;
+
+  // Position: bottom-left corner with 60px padding
+  const padding = 60;
+  const wmWidth = 120;
+  const wmHeight = 120;
+  const x = padding;
+  const y = canvas.height - wmHeight - padding;
+
+  // Draw watermark with slight opacity
+  ctx.save();
+  ctx.globalAlpha = 0.7;
+  ctx.drawImage(watermarkImg, x, y, wmWidth, wmHeight);
+  ctx.restore();
+}
 
 function wrapText(
   ctx: CanvasRenderingContext2D,

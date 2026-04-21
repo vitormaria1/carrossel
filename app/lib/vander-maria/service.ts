@@ -63,28 +63,27 @@ export async function generateVanderMariaCarousel(
     }
   }
 
-  // STEP 2: Generate images for ALL 5 types (in parallel)
+  // STEP 2: Generate images for ALL 5 types (SEQUENTIALLY to avoid rate limit)
   onProgress?.('Gerando imagens para todos os 5 slides...');
 
-  // Parallel image generation for all 5 types
   let images: { [key: number]: GenerateImageResponse | null } = {};
 
   try {
-    const imagePromises = slides.map(slide =>
-      generateImageForSlide(slide)
-        .then(result => {
-          console.log(`Type ${slide.slideType}: ${result.success ? '✅ OK' : '❌ FAILED'} | Text length: ${slide.textInScreen?.length || 0} chars`);
-          if (!result.success) {
-            console.error(`  Error: ${result.error}`);
-          }
-          return result;
-        })
-    );
+    // Sequential generation with delay between requests
+    for (const slide of slides) {
+      console.log(`Generating Type ${slide.slideType}...`);
+      const result = await generateImageForSlide(slide);
+      console.log(`Type ${slide.slideType}: ${result.success ? '✅ OK' : '❌ FAILED'} | Text length: ${slide.textInScreen?.length || 0} chars`);
+      if (!result.success) {
+        console.error(`  Error: ${result.error}`);
+      }
+      images[slide.slideType] = result;
 
-    const results = await Promise.all(imagePromises);
-    slides.forEach((slide, idx) => {
-      images[slide.slideType] = results[idx];
-    });
+      // Add delay between requests to avoid rate limiting
+      if (slides.indexOf(slide) < slides.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
   } catch (error) {
     console.error('⚠️ Image generation error:', error);
     // Continue anyway - cards still render
@@ -258,8 +257,16 @@ export async function renderVanderMariaCardToBase64(
     cardImg = await loadImageFromUrl(card.generatedImageUrl);
   }
 
+  // Load watermark
+  let watermarkImg: HTMLImageElement | null = null;
+  try {
+    watermarkImg = await loadImageFromUrl('/vander-watermark.png');
+  } catch (e) {
+    console.warn('Watermark failed to load, continuing without it');
+  }
+
   // Render based on type
-  const options = { cardImg };
+  const options = { cardImg, watermarkImg };
 
   switch (card.slideType) {
     case 1:
