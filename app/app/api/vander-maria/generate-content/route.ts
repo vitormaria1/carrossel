@@ -83,6 +83,7 @@ IMPORTANT:
       // Try direct JSON parse
       parsedResponse = JSON.parse(responseText);
     } catch (e) {
+      console.log('📋 Raw Gemini response (first 1000 chars):', responseText.substring(0, 1000));
       // Try extracting JSON from markdown code block
       const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (jsonMatch) {
