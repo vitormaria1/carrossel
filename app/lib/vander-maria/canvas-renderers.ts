@@ -23,8 +23,8 @@ export function renderVanderType1(
   card: VanderMariaCard,
   options: RenderOptions = {}
 ): void {
-  canvas.width = 1080;
-  canvas.height = 1440;
+  canvas.width = 2160;
+  canvas.height = 2880;
 
   // Draw the image from Gemini (text is already rendered on it)
   if (options.cardImg) {

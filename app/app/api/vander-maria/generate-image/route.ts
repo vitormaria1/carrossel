@@ -58,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateImage
       case 3:
         userPrompt = `GENERATE INSTAGRAM CARD TYPE 3: PURE TYPOGRAPHY
 
-Canvas: 1080x1440px
+Canvas: 2160x2880px
 Background: NEAR-BLACK (#1A0F0F) - must fill entire canvas
 
 Text Content to Render:
@@ -78,7 +78,7 @@ CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK.`;
       case 4:
         userPrompt = `GENERATE INSTAGRAM CARD TYPE 4: HIGH-IMPACT EDITORIAL
 
-Canvas: 1080x1440px
+Canvas: 2160x2880px
 Background: CHARCOAL (#1A1A1A) with subtle grid overlay
 
 Text Content to Render:
@@ -98,7 +98,7 @@ CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK.`;
       case 5:
         userPrompt = `GENERATE INSTAGRAM CARD TYPE 5: CTA SLIDE
 
-Canvas: 1080x1440px
+Canvas: 2160x2880px
 Background: OFF-WHITE (#F4F0E8) - must fill entire canvas
 
 Text Content to Render:
@@ -161,16 +161,21 @@ CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK. Premium a
 
     const data = await geminiResponse.json();
 
+    // DEBUG: Log full Gemini response
+    console.log('🔍 Gemini raw response:', JSON.stringify(data, null, 2).substring(0, 1000));
+
     // Extract image from response
     const parts = data.candidates?.[0]?.content?.parts;
 
     if (!parts || !Array.isArray(parts)) {
-      console.error('❌ No parts array in Gemini response. Data:', JSON.stringify(data).substring(0, 300));
+      console.error('❌ No parts array in Gemini response. Full data:', JSON.stringify(data));
       return NextResponse.json(
         { success: false, error: 'Gemini response has no content parts' },
         { status: 500 }
       );
     }
+
+    console.log('📦 Parts in response:', parts.length, 'Types:', parts.map((p: any) => Object.keys(p).join(',')));
 
     const imagePart = parts.find((part: any) => part.inlineData);
 
