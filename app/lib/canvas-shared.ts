@@ -64,8 +64,8 @@ export function renderTweetCardOnCanvas(
   }
 
   // Body text
-  ctx.font = '38px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-  const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, 50);
+  ctx.font = '44px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+  const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, 45);
   contentHeight += bodyHeight + 20;
 
   // Card image se existir
@@ -78,7 +78,7 @@ export function renderTweetCardOnCanvas(
 
   // Calcular posição inicial para centralizar (centro vertical)
   const totalAvailableHeight = canvas.height;
-  const topMargin = Math.max(40, (totalAvailableHeight - contentHeight) / 2);
+  const topMargin = Math.max(20, (totalAvailableHeight - contentHeight) / 2);
 
   // Começar posicionamento
   let currentY = topMargin;
@@ -127,11 +127,11 @@ export function renderTweetCardOnCanvas(
   }
 
   // 3. Body text
-  ctx.font = '38px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+  ctx.font = '44px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
   ctx.fillStyle = card.colors.text;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  wrapText(ctx, card.text, padding, currentY, textWidth, 50);
+  wrapText(ctx, card.text, padding, currentY, textWidth, 45);
   currentY += bodyHeight + 20;
 
   // 4. Card image (se existir)
@@ -283,6 +283,22 @@ function wrapText(
       ctx.fillText(line.trim(), x, y);
       line = word + ' ';
       y += lineHeight;
+    } else if (metrics.width > maxWidth && !line) {
+      // Palavra é tão longa que não cabe mesmo sozinha - quebrar por caractere
+      let charLine = '';
+      for (const char of word) {
+        const charTestLine = charLine + char;
+        const charMetrics = ctx.measureText(charTestLine);
+
+        if (charMetrics.width > maxWidth && charLine) {
+          ctx.fillText(charLine, x, y);
+          y += lineHeight;
+          charLine = char;
+        } else {
+          charLine = charTestLine;
+        }
+      }
+      line = charLine + ' ';
     } else {
       line = testLine;
     }
