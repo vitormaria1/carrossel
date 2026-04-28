@@ -151,7 +151,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
         <div className="flex items-center gap-4">
           <input
             type="range"
-            min={3}
+            min={1}
             max={20}
             value={totalCards}
             onChange={(e) => setTotalCards(parseInt(e.target.value))}
@@ -161,7 +161,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
             {totalCards}
           </span>
         </div>
-        <p className="text-xs text-gray-500 mt-2">Escolha entre 3 e 20 cards</p>
+        <p className="text-xs text-gray-500 mt-2">Escolha entre 1 e 20 cards</p>
       </div>
 
       <button
