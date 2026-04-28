@@ -64,8 +64,8 @@ export function renderTweetCardOnCanvas(
   }
 
   // Body text
-  ctx.font = '44px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-  const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, 45);
+  ctx.font = '52px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+  const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, 38);
   contentHeight += bodyHeight + 20;
 
   // Card image se existir
@@ -78,7 +78,7 @@ export function renderTweetCardOnCanvas(
 
   // Calcular posição inicial para centralizar (centro vertical)
   const totalAvailableHeight = canvas.height;
-  const topMargin = Math.max(20, (totalAvailableHeight - contentHeight) / 2);
+  const topMargin = Math.max(10, (totalAvailableHeight - contentHeight) / 2);
 
   // Começar posicionamento
   let currentY = topMargin;
@@ -127,11 +127,11 @@ export function renderTweetCardOnCanvas(
   }
 
   // 3. Body text
-  ctx.font = '44px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+  ctx.font = '52px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
   ctx.fillStyle = card.colors.text;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  wrapText(ctx, card.text, padding, currentY, textWidth, 45);
+  wrapText(ctx, card.text, padding, currentY, textWidth, 38);
   currentY += bodyHeight + 20;
 
   // 4. Card image (se existir)
