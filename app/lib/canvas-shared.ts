@@ -24,6 +24,10 @@ export function renderTweetCardOnCanvas(
 ): void {
   const { profileImg = null, cardImg = null } = options;
 
+  const bodyFontSize = 52;
+  // Pequeno aumento no espaçamento entre linhas para manter legibilidade após compressão do Instagram
+  const bodyLineHeight = 60;
+
   // Dimensões
   canvas.width = 1080;
   canvas.height = 1440;
@@ -64,8 +68,8 @@ export function renderTweetCardOnCanvas(
   }
 
   // Body text
-  ctx.font = '52px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-  const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, 38);
+  ctx.font = `${bodyFontSize}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
+  const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, bodyLineHeight);
   contentHeight += bodyHeight + 20;
 
   // Card image se existir
@@ -127,11 +131,11 @@ export function renderTweetCardOnCanvas(
   }
 
   // 3. Body text
-  ctx.font = '52px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+  ctx.font = `${bodyFontSize}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
   ctx.fillStyle = card.colors.text;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  wrapText(ctx, card.text, padding, currentY, textWidth, 38);
+  wrapText(ctx, card.text, padding, currentY, textWidth, bodyLineHeight);
   currentY += bodyHeight + 20;
 
   // 4. Card image (se existir)
