@@ -24,9 +24,13 @@ export function renderTweetCardOnCanvas(
 ): void {
   const { profileImg = null, cardImg = null } = options;
 
-  const bodyFontSize = 52;
+  // Auto-fit: evita texto cortado quando o modelo gera copy maior que o espaço disponível
+  // Mantém o layout/harmonia ajustando levemente tamanhos e line-height.
+  let headlineFontSize = 48;
+  let headlineLineHeight = 60;
+  let bodyFontSize = 52;
   // Pequeno aumento no espaçamento entre linhas para manter legibilidade após compressão do Instagram
-  const bodyLineHeight = 60;
+  let bodyLineHeight = 60;
 
   // Dimensões
   canvas.width = 1080;
@@ -53,36 +57,55 @@ export function renderTweetCardOnCanvas(
   const ctaHeight = 60;
   const ctaWidth = 300;
 
-  // Cálcular altura total de conteúdo
-  let contentHeight = 0;
+  const measureLayout = () => {
+    let contentHeight = 0;
+    contentHeight += profileImageSize + 20;
 
-  // Profile: imagem + espaço
-  contentHeight += profileImageSize + 20;
+    let headlineHeight = 0;
+    if (card.headline) {
+      ctx.font = `bold ${headlineFontSize}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
+      headlineHeight = estimateTextHeight(ctx, card.headline, textWidth, headlineLineHeight);
+      contentHeight += headlineHeight + 20;
+    }
 
-  // Headline
-  let headlineHeight = 0;
-  if (card.headline) {
-    ctx.font = 'bold 48px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-    headlineHeight = estimateTextHeight(ctx, card.headline, textWidth, 60);
-    contentHeight += headlineHeight + 20;
+    ctx.font = `${bodyFontSize}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
+    const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, bodyLineHeight);
+    contentHeight += bodyHeight + 20;
+
+    if (cardImg) contentHeight += imageHeight + 20;
+    if (card.cta) contentHeight += ctaHeight + 20;
+
+    return { contentHeight, headlineHeight, bodyHeight };
+  };
+
+  // Auto-fit loop: reduz o body primeiro; depois headline se necessário
+  let { contentHeight, headlineHeight, bodyHeight } = measureLayout();
+  const minBodyFontSize = 40;
+  const minHeadlineFontSize = 42;
+  const minTopMargin = 10;
+
+  const availableHeight = canvas.height - minTopMargin * 2;
+  let safety = 0;
+  while (contentHeight > availableHeight && safety < 30) {
+    safety += 1;
+
+    if (bodyFontSize > minBodyFontSize) {
+      bodyFontSize -= 2;
+      bodyLineHeight = Math.max(46, Math.round(bodyFontSize * 1.15));
+    } else if (headlineFontSize > minHeadlineFontSize) {
+      headlineFontSize -= 2;
+      headlineLineHeight = Math.max(50, Math.round(headlineFontSize * 1.25));
+    } else {
+      break;
+    }
+
+    ({ contentHeight, headlineHeight, bodyHeight } = measureLayout());
   }
-
-  // Body text
-  ctx.font = `${bodyFontSize}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
-  const bodyHeight = estimateTextHeight(ctx, card.text, textWidth, bodyLineHeight);
-  contentHeight += bodyHeight + 20;
-
-  // Card image se existir
-  if (cardImg) {
-    contentHeight += imageHeight + 20;
-  }
-
-  // CTA button
-  contentHeight += ctaHeight + 20;
 
   // Calcular posição inicial para centralizar (centro vertical)
   const totalAvailableHeight = canvas.height;
-  const topMargin = Math.max(10, (totalAvailableHeight - contentHeight) / 2);
+  const topMargin =
+    contentHeight > totalAvailableHeight ? minTopMargin : Math.max(minTopMargin, (totalAvailableHeight - contentHeight) / 2);
 
   // Começar posicionamento
   let currentY = topMargin;
@@ -122,11 +145,11 @@ export function renderTweetCardOnCanvas(
 
   // 2. Headline
   if (card.headline) {
-    ctx.font = 'bold 48px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    ctx.font = `bold ${headlineFontSize}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
     ctx.fillStyle = card.colors.text;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    wrapText(ctx, card.headline, padding, currentY, textWidth, 60);
+    wrapText(ctx, card.headline, padding, currentY, textWidth, headlineLineHeight);
     currentY += headlineHeight + 20;
   }
 
@@ -224,12 +247,37 @@ function estimateTextHeight(
     const testLine = line + word + ' ';
     const metrics = ctx.measureText(testLine);
 
+    // Se a palavra individual é maior que maxWidth, considerar quebra por caractere (igual wrapText)
+    const wordMetrics = ctx.measureText(word);
+    if (wordMetrics.width > maxWidth) {
+      if (line) {
+        lines++;
+        line = '';
+      }
+
+      let charLine = '';
+      for (const char of word) {
+        const charTestLine = charLine + char;
+        const charMetrics = ctx.measureText(charTestLine);
+        if (charMetrics.width > maxWidth && charLine) {
+          lines++;
+          charLine = char;
+        } else {
+          charLine = charTestLine;
+        }
+      }
+
+      line = charLine + ' ';
+      return;
+    }
+
     if (metrics.width > maxWidth && line) {
       lines++;
       line = word + ' ';
-    } else {
-      line = testLine;
+      return;
     }
+
+    line = testLine;
   });
 
   return lines * lineHeight;
