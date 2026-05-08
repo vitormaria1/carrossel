@@ -30,9 +30,9 @@ ${customization ? `Direction: ${customization}` : ''}
 ${targetAudience ? `Target audience: ${targetAudience}` : ''}
 
 IMPORTANT:
-- Each slide has specific text structure (see system prompt)
-- Types 1-2 need compelling visual dynamics for image generation
-- Types 3-5 are typography-only, no dynamics needed
+- Each slide is "Tweet Expanded" style (pure typography, no photography)
+- Provide highlights array for each slide (must appear in textInScreen)
+- Slide 5 is CTA and must include ctaButtonText
 - Return ONLY JSON, no markdown or extra text`;
 
     // Call Gemini 3 Pro
@@ -120,6 +120,33 @@ IMPORTANT:
           { error: `Slide ${i + 1} missing required fields` },
           { status: 500 }
         );
+      }
+      if (!Array.isArray(slide.highlights) || slide.highlights.length < 1) {
+        console.error(`❌ Slide ${i + 1} missing/invalid highlights:`, slide.highlights);
+        return NextResponse.json(
+          { error: `Slide ${i + 1} missing required highlights` },
+          { status: 500 }
+        );
+      }
+      // Ensure highlights appear in text (verbatim)
+      const text = String(slide.textInScreen);
+      for (const h of slide.highlights) {
+        if (typeof h !== 'string' || h.trim().length === 0 || !text.includes(h)) {
+          console.error(`❌ Slide ${i + 1} highlight not found in text:`, h);
+          return NextResponse.json(
+            { error: `Slide ${i + 1} has highlight not present in textInScreen` },
+            { status: 500 }
+          );
+        }
+      }
+      if (slide.slideType === 5) {
+        if (typeof slide.ctaButtonText !== 'string' || slide.ctaButtonText.trim().length === 0) {
+          console.error(`❌ Slide ${i + 1} missing ctaButtonText:`, slide.ctaButtonText);
+          return NextResponse.json(
+            { error: 'CTA slide (type 5) missing required ctaButtonText' },
+            { status: 500 }
+          );
+        }
       }
       if (![1, 2, 3, 4, 5].includes(slide.slideType)) {
         console.error(`❌ Slide ${i + 1} invalid type:`, slide.slideType);

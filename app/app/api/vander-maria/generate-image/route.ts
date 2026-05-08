@@ -18,7 +18,8 @@ const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models
 interface GenerateImageRequest {
   slideType: 1 | 2 | 3 | 4 | 5;
   textInScreen: string;
-  dynamics: string;
+  highlights?: string[];
+  ctaButtonText?: string;
 }
 
 interface GenerateImageResponse {
@@ -30,7 +31,7 @@ interface GenerateImageResponse {
 
 export async function POST(req: NextRequest): Promise<NextResponse<GenerateImageResponse>> {
   try {
-    const { slideType, textInScreen, dynamics } = (await req.json()) as GenerateImageRequest;
+    const { slideType, textInScreen, highlights = [], ctaButtonText } = (await req.json()) as GenerateImageRequest;
 
     if (!slideType || ![1, 2, 3, 4, 5].includes(slideType)) {
       return NextResponse.json(
@@ -46,97 +47,39 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateImage
       );
     }
 
-    let userPrompt = '';
-
-    switch (slideType) {
-      case 1:
-        userPrompt = `RENDER this text on a cinematic photograph (Type 1):\n\n${textInScreen}\n\nPhoto mood: ${dynamics || 'Intimate, moody, professional'}`;
-        break;
-      case 2:
-        userPrompt = `GENERATE INSTAGRAM CARD TYPE 2: TEXT + IMAGE HARMONY
-
-Canvas: 4320x5760px
-
-Text Content to Render:
-${textInScreen}
-
-Layout Instructions (CRITICAL):
-1. INTEGRATED DESIGN: Text and image should flow together, NOT separated
-2. Text rendered OVER or INTEGRATED with cinematic photograph (not in isolated box)
-3. Text positioned to harmonize with image composition (use dark areas for readability)
-4. Cinematic photograph: continuation of narrative, sharp focus, professional
-5. Color: Text in WHITE (#F4F0E8) or OFF-WHITE with strong contrast against image
-6. Typography: Clean, modern sans-serif (Inter/Söhne style), readable size
-7. Overlay style: Semi-transparent or placed where image naturally supports text readability
-8. TOTAL COMPOSITION: Single unified visual, not top/bottom split
-
-Photo mood: ${dynamics || 'Continuation of narrative, sharp focus'}
-
-CRITICAL: Generate a COMPLETE IMAGE with text and image INTEGRATED harmoniously. NOT BLANK.`;
-        break;
-      case 3:
-        userPrompt = `GENERATE INSTAGRAM CARD TYPE 3: PURE TYPOGRAPHY
-
-Canvas: 4320x5760px
-Background: NEAR-BLACK (#1A0F0F) - must fill entire canvas
-
-Text Content to Render:
-${textInScreen}
-
-Layout Instructions (CRITICAL):
-1. Background MUST be solid #1A0F0F (no gradients, no patterns)
-2. Text sections separated by \\n\\n
-3. Top section: Small intro text, WHITE (#F4F0E8), font size 24-28px, top 15% of canvas
-4. Middle section: MASSIVE IMPACT text, BRIGHT BURGUNDY (#A8342F), font size 72-96px, centered, middle 60%
-5. Bottom section: Small closer text, WHITE (#F4F0E8), font size 24-28px, bottom 15% of canvas
-6. Fonts: Bold, condensed, uppercase (Bebas Neue/Anton style)
-7. All text MUST be clearly visible and readable
-
-CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK.`;
-        break;
-      case 4:
-        userPrompt = `GENERATE INSTAGRAM CARD TYPE 4: HIGH-IMPACT EDITORIAL
-
-Canvas: 4320x5760px
-Background: CHARCOAL (#1A1A1A) with subtle grid overlay
-
-Text Content to Render:
-${textInScreen}
-
-Layout Instructions (CRITICAL):
-1. Background MUST be solid #1A1A1A with optional subtle grid
-2. Text sections separated by \\n\\n
-3. Top-left section: Small intro text, WHITE (#F4F0E8), font size 24-28px, top-left with 40px padding
-4. Center section: ONE LARGE WORD, BRIGHT BURGUNDY (#A8342F), font size 88-108px, centered, breaks composition
-5. Bottom-left section: Small remark text, WHITE (#F4F0E8), font size 24-28px, bottom-left with 40px padding
-6. Fonts: Bold, condensed, uppercase (Bebas Neue/Anton style)
-7. All text MUST be clearly visible and readable
-
-CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK.`;
-        break;
-      case 5:
-        userPrompt = `GENERATE INSTAGRAM CARD TYPE 5: CTA SLIDE
-
-Canvas: 4320x5760px
-Background: OFF-WHITE (#F4F0E8) - must fill entire canvas
-
-Text Content to Render:
-${textInScreen}
-
-Layout Instructions (CRITICAL):
-1. Background MUST be solid #F4F0E8 (no patterns)
-2. Top (y ~60px): Small "VM" monogram in DEEP BURGUNDY (#7A1C1C), font size 32px, right-aligned
-3. Text sections separated by \\n\\n
-4. Main text block (y ~180px): Text in CHARCOAL (#1A1A1A), font size 28-32px, centered, 40% height
-5. Highlighted box (y ~900px): Background DEEP BURGUNDY (#7A1C1C), height 200px, 80% width, centered
-   - Text inside: OFF-WHITE (#F4F0E8), font size 28px, bold
-6. Fonts: Bold, condensed, uppercase (Bebas Neue/Anton style)
-7. Vertical connectors between sections, DEEP BURGUNDY (#7A1C1C), opacity 0.3
-8. All text MUST be clearly visible and readable
-
-CRITICAL: Generate a COMPLETE IMAGE with all text rendered. NOT BLANK. Premium aesthetic.`;
-        break;
+    const isCta = slideType === 5;
+    if (isCta && (!ctaButtonText || String(ctaButtonText).trim().length === 0)) {
+      return NextResponse.json(
+        { success: false, error: 'ctaButtonText is required for CTA (slideType 5)' },
+        { status: 400 }
+      );
     }
+
+    const highlightList = Array.isArray(highlights) ? highlights.filter(Boolean).slice(0, 3) : [];
+    const highlightText = highlightList.length ? highlightList.map((h) => `- ${h}`).join('\n') : '(none)';
+
+    const userPrompt = isCta
+      ? `Generate the FINAL CTA slide (Tweet Expanded style).
+
+Tweet/CTA text:
+${textInScreen}
+
+Button text (CTA):
+${ctaButtonText}
+
+Words/phrases to highlight in burgundy:
+${highlightText}
+
+Remember: no tweet header on CTA slide, but keep the standard footer.`
+      : `Generate a REGULAR Tweet Expanded slide.
+
+Tweet text:
+${textInScreen}
+
+Words/phrases to highlight in burgundy:
+${highlightText}
+
+Remember: include the tweet header at the top and the standard footer at the bottom.`;
 
     // Call Gemini 3 Pro Vision
     const geminiResponse = await fetch(GEMINI_ENDPOINT, {

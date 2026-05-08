@@ -99,6 +99,8 @@ export async function generateVanderMariaCarousel(
       slideType: slide.slideType as VanderSlideType,
       order: idx,
       textInScreen: slide.textInScreen,
+      highlights: slide.highlights || [],
+      ctaButtonText: slide.ctaButtonText,
       dynamics: slide.dynamics || '',
       colors: {
         bg: '#F4F0E8',
@@ -138,10 +140,6 @@ async function generateImageForSlide(
       return { success: false, error: 'Missing or empty textInScreen' };
     }
 
-    if (!slide.dynamics) {
-      console.warn(`⚠️ Type ${slide.slideType}: dynamics is empty, using fallback`);
-    }
-
     console.log(`📸 Type ${slide.slideType} (attempt ${retryCount + 1}/${maxRetries + 1}): text="${slide.textInScreen.substring(0, 50)}..."`);
     console.log(`   Full text length: ${slide.textInScreen.length} characters`);
 
@@ -154,7 +152,8 @@ async function generateImageForSlide(
       body: JSON.stringify({
         slideType: slide.slideType,
         textInScreen: slide.textInScreen,
-        dynamics: slide.dynamics || 'Photorealistic, cinematic scene for Vander Maria carousel',
+        highlights: slide.highlights || [],
+        ctaButtonText: slide.ctaButtonText,
       }),
       signal: controller.signal,
     });

@@ -25,7 +25,7 @@ export function renderVanderType1(
   options: RenderOptions = {}
 ): void {
   canvas.width = 4320;
-  canvas.height = 5760;
+  canvas.height = 5400;
 
   // Draw the image from Gemini (text is already rendered on it)
   if (options.cardImg) {
@@ -52,7 +52,7 @@ export function renderVanderType2(
   options: RenderOptions = {}
 ): void {
   canvas.width = 4320;
-  canvas.height = 5760;
+  canvas.height = 5400;
 
   // Draw the image from Gemini (text is already rendered on it)
   if (options.cardImg) {
@@ -78,7 +78,7 @@ export function renderVanderType3(
   options: RenderOptions = {}
 ): void {
   canvas.width = 4320;
-  canvas.height = 5760;
+  canvas.height = 5400;
 
   // Draw the image from Gemini
   if (options.cardImg) {
@@ -104,7 +104,7 @@ export function renderVanderType4(
   options: RenderOptions = {}
 ): void {
   canvas.width = 4320;
-  canvas.height = 5760;
+  canvas.height = 5400;
 
   // Draw the image from Gemini
   if (options.cardImg) {
@@ -130,7 +130,7 @@ export function renderVanderType5(
   options: RenderOptions = {}
 ): void {
   canvas.width = 4320;
-  canvas.height = 5760;
+  canvas.height = 5400;
 
   // Draw the image from Gemini
   if (options.cardImg) {
