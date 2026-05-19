@@ -55,7 +55,7 @@ export default function HomeClient() {
           expertise,
           targetAudience,
           toneOfVoice,
-          carouselTemplate: 'tweet',
+          carouselTemplate: carouselTemplate,
           carouselType: carouselType === 'auto' ? undefined : carouselType,
         })
       });
@@ -79,12 +79,12 @@ export default function HomeClient() {
             imageType: 'html' as const,
             colors,
             order: idx,
-            carouselTemplate: 'tweet',
+            carouselTemplate: carouselTemplate,
           };
         });
 
         setCards(cards);
-        console.log('✅ Cards Tweet salvos!');
+        console.log(`✅ Cards salvos! Template: ${carouselTemplate}`);
       }
     } catch (error) {
       console.error('Generate error:', error);

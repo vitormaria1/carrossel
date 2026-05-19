@@ -13,6 +13,12 @@ export function TemplateSelector() {
       icon: '🐦',
     },
     {
+      id: 'tweetExpanded',
+      label: 'Tweet Expandido',
+      description: 'Minimalista dark (Vander Maria) com destaques',
+      icon: '🟥',
+    },
+    {
       id: 'vanderMaria',
       label: 'Vander Maria',
       description: 'Carrossel cinemático com 5 slides profissionais',

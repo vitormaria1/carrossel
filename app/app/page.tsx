@@ -1,7 +1,6 @@
 import HomeClient from './home-client';
 
-export default function Home() {
+export default function Page() {
   return <HomeClient />;
 }
 
-export const revalidate = 0;

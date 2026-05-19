@@ -13,7 +13,7 @@ interface GenerateRequest {
   targetAudience?: string;
   toneOfVoice?: string;
   carouselType?: string;
-  carouselTemplate?: 'standard' | 'tweet';
+  carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded';
 }
 
 export async function POST(req: NextRequest) {

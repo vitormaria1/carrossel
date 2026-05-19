@@ -214,6 +214,35 @@ export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string 
   }
 }
 
+export async function exportTweetExpandedCardAsPNG(
+  card: CarouselCard,
+  isCtaSlide: boolean,
+  fileName: string = 'tweet-expandido.jpg'
+) {
+  const canvas = createTweetExpandedCardCanvasSync(card, isCtaSlide);
+
+  return new Promise<void>((resolve) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') ? fileName : `${fileName}.jpg`;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+        }
+        resolve();
+      },
+      'image/jpeg',
+      0.95
+    );
+  });
+}
+
 /**
  * Exporta um card individual como imagem PNG (Padrão)
  */
@@ -462,18 +491,24 @@ function wrapTextForCanvas(ctx: CanvasRenderingContext2D, text: string, maxWidth
   return lines;
 }
 
-export function createCardCanvas(card: CarouselCard, template: 'standard' | 'tweet' = 'standard'): HTMLCanvasElement {
+export function createCardCanvas(card: CarouselCard, template: 'standard' | 'tweet' | 'tweetExpanded' = 'standard'): HTMLCanvasElement {
   // Para uso síncrono (ex: exportação manual), tentar usar imagem do cache ou fallback
   if (template === 'tweet') {
     return createTweetCardCanvasSync(card, profileImageCache?.img || null, null);
   }
+  if (template === 'tweetExpanded') {
+    return createTweetExpandedCardCanvasSync(card, false);
+  }
   return createStandardCardCanvas(card);
 }
 
-function createCardCanvasInternal(card: CarouselCard, template: 'standard' | 'tweet', profileImg: HTMLImageElement | null): HTMLCanvasElement {
+function createCardCanvasInternal(card: CarouselCard, template: 'standard' | 'tweet' | 'tweetExpanded', profileImg: HTMLImageElement | null): HTMLCanvasElement {
   if (template === 'tweet') {
     // Para template tweet, renderizar sem imagens (async é feito em generateCardBase64Internal)
     return createTweetCardCanvasSync(card, profileImg, null);
+  }
+  if (template === 'tweetExpanded') {
+    return createTweetExpandedCardCanvasSync(card, false);
   }
   return createStandardCardCanvas(card);
 }
@@ -662,10 +697,210 @@ function createTweetCardCanvasSync(card: CarouselCard, profileImg: HTMLImageElem
   return canvas;
 }
 
+type HighlightToken = { text: string; highlighted: boolean };
+
+function tokenizeHighlights(text: string): HighlightToken[] {
+  const tokens: HighlightToken[] = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ text: text.slice(lastIndex, match.index), highlighted: false });
+    }
+    tokens.push({ text: match[1], highlighted: true });
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    tokens.push({ text: text.slice(lastIndex), highlighted: false });
+  }
+
+  return tokens;
+}
+
+function splitTokensIntoWords(tokens: HighlightToken[]): HighlightToken[] {
+  const out: HighlightToken[] = [];
+  for (const t of tokens) {
+    const parts = t.text.split(/(\s+)/);
+    for (const p of parts) {
+      if (!p) continue;
+      out.push({ text: p, highlighted: t.highlighted });
+    }
+  }
+  return out;
+}
+
+function wrapHighlightTokens(
+  ctx: CanvasRenderingContext2D,
+  tokens: HighlightToken[],
+  maxWidth: number
+): HighlightToken[][] {
+  const lines: HighlightToken[][] = [];
+  let current: HighlightToken[] = [];
+  let currentWidth = 0;
+
+  for (const token of tokens) {
+    const w = ctx.measureText(token.text).width;
+
+    if (current.length > 0 && currentWidth + w > maxWidth) {
+      lines.push(current);
+      current = [];
+      currentWidth = 0;
+    }
+
+    current.push(token);
+    currentWidth += w;
+  }
+
+  if (current.length) lines.push(current);
+  return lines;
+}
+
+function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boolean): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) throw new Error('Canvas context not available');
+
+  // Instagram 4:5 (1080x1350)
+  canvas.width = 1080;
+  canvas.height = 1350;
+
+  // Fundo
+  ctx.fillStyle = '#1A0F0F';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const paddingX = 50;
+  const paddingY = 40;
+  const footerHeight = 90;
+  const headerHeight = isCtaSlide ? 0 : 80;
+
+  // Header (não no CTA)
+  if (!isCtaSlide) {
+    const avatarSize = 44;
+    const avatarX = paddingX;
+    const avatarY = paddingY;
+
+    ctx.fillStyle = '#7A1C1C';
+    ctx.beginPath();
+    ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#F4F0E8';
+    ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('VM', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.font = '700 14px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#F4F0E8';
+    ctx.fillText('Vander Maria', avatarX + avatarSize + 14, avatarY + 4);
+
+    ctx.font = '400 12px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#888888';
+    ctx.fillText('@vandermarias', avatarX + avatarSize + 14, avatarY + 24);
+  }
+
+  // Footer fixo
+  const footerY = canvas.height - paddingY - footerHeight + 20;
+  ctx.strokeStyle = '#333333';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(paddingX, footerY);
+  ctx.lineTo(canvas.width - paddingX, footerY);
+  ctx.stroke();
+
+  ctx.font = '400 11px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#666666';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Vander Maria', paddingX, footerY + 10);
+  ctx.textAlign = 'right';
+  ctx.fillText('@vandermarias', canvas.width - paddingX, footerY + 10);
+
+  // Conteúdo
+  const contentTop = paddingY + headerHeight + (isCtaSlide ? 0 : 20);
+  const contentBottom = footerY - 30;
+  const contentHeight = contentBottom - contentTop;
+  const contentWidth = canvas.width - paddingX * 2;
+
+  if (!isCtaSlide) {
+    const cleanText = card.text.replace(/\*\*(.+?)\*\*/g, '$1');
+    const len = cleanText.length;
+    const fontSize = len < 80 ? 28 : len <= 150 ? 22 : 21;
+    const lineHeight = Math.round(fontSize * 1.3);
+
+    ctx.font = `600 ${fontSize}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    const tokens = splitTokensIntoWords(tokenizeHighlights(card.text));
+    const lines = wrapHighlightTokens(ctx, tokens, contentWidth);
+    const blockHeight = lines.length * lineHeight;
+    const startY = contentTop + Math.max(0, Math.floor((contentHeight - blockHeight) / 2));
+
+    let y = startY;
+    for (const line of lines) {
+      let x = paddingX;
+      for (const t of line) {
+        ctx.fillStyle = t.highlighted ? '#A8342F' : '#F4F0E8';
+        ctx.fillText(t.text, x, y);
+        x += ctx.measureText(t.text).width;
+      }
+      y += lineHeight;
+    }
+  } else {
+    // CTA Slide
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+
+    // Monograma
+    ctx.font = '700 32px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#A8342F';
+    const monoY = contentTop + 140;
+    ctx.fillText('VM', canvas.width / 2, monoY);
+
+    // Texto CTA
+    ctx.font = '600 28px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#F4F0E8';
+    const ctaText = (card.text || '').trim() || 'Quer o próximo passo?';
+    const lines = wrapTextForCanvas(ctx, ctaText, contentWidth, 28);
+    let y = monoY + 80;
+    for (const line of lines) {
+      ctx.fillText(line, canvas.width / 2, y);
+      y += 38;
+    }
+
+    // Botão
+    const btnText = (card.cta || 'SAIBA MAIS').toUpperCase();
+    ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    const btnPaddingX = 24;
+    const btnPaddingY = 12;
+    const btnTextW = ctx.measureText(btnText).width;
+    const btnW = Math.min(contentWidth, btnTextW + btnPaddingX * 2);
+    const btnH = 22 + btnPaddingY * 2;
+    const btnX = (canvas.width - btnW) / 2;
+    const btnY = y + 40;
+
+    ctx.fillStyle = '#A8342F';
+    roundRect(ctx, btnX, btnY, btnW, btnH, 4);
+    ctx.fill();
+
+    ctx.fillStyle = '#F4F0E8';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(btnText, canvas.width / 2, btnY + btnH / 2);
+  }
+
+  return canvas;
+}
+
 /**
  * Gera base64 de um card no browser (verdade visual garantida)
  */
-export async function generateCardBase64(card: CarouselCard, template: 'standard' | 'tweet' = 'standard'): Promise<string> {
+export async function generateCardBase64(card: CarouselCard, template: 'standard' | 'tweet' | 'tweetExpanded' = 'standard'): Promise<string> {
   // Para tweet template, pré-carregar imagem de perfil
   if (template === 'tweet') {
     const profileImg = await loadProfileImage();
@@ -676,13 +911,15 @@ export async function generateCardBase64(card: CarouselCard, template: 'standard
   return generateCardBase64Internal(card, template, null);
 }
 
-async function generateCardBase64Internal(card: CarouselCard, template: 'standard' | 'tweet', profileImg: HTMLImageElement | null): Promise<string> {
+async function generateCardBase64Internal(card: CarouselCard, template: 'standard' | 'tweet' | 'tweetExpanded', profileImg: HTMLImageElement | null): Promise<string> {
   try {
     console.log(`   colors: bg="${card.colors.bg}", text="${card.colors.text}"`);
 
     let canvas: HTMLCanvasElement;
     if (template === 'tweet') {
       canvas = await createTweetCardCanvasSyncWithImages(card, profileImg);
+    } else if (template === 'tweetExpanded') {
+      canvas = createTweetExpandedCardCanvasSync(card, false);
     } else {
       canvas = createCardCanvasInternal(card, template, profileImg);
     }

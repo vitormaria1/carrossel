@@ -11,7 +11,7 @@ export interface CarouselCard {
   imageType: 'html' | 'ai' | 'stock';
   colors: { bg: string; text: string; accent?: string };
   order: number;
-  carouselTemplate?: 'standard' | 'tweet' | 'vanderMaria';
+  carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
 }
 
 export interface UploadedDoc {
@@ -22,7 +22,7 @@ export interface UploadedDoc {
   uploadedAt: number;
 }
 
-export type CarouselTemplate = 'standard' | 'tweet' | 'vanderMaria';
+export type CarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
 export type CarouselType = 'transformacao' | 'autoridade' | 'ideologico' | 'educacional' | 'vendas' | 'auto';
 
 export interface CarouselState {
@@ -36,6 +36,7 @@ export interface CarouselState {
   carouselType: CarouselType;
   cardsStandard: CarouselCard[];
   cardsTweet: CarouselCard[];
+  cardsTweetExpanded: CarouselCard[];
   cardsVanderMaria: CarouselCard[];  // ISOLADO: Vander Maria cards separados
 
   setIdea: (idea: string) => void;
@@ -58,6 +59,7 @@ export const useCarouselStore = create<CarouselState>((set) => ({
   cards: [],
   cardsStandard: [],
   cardsTweet: [],
+  cardsTweetExpanded: [],
   cardsVanderMaria: [],  // ISOLADO: Vander Maria state separado
   totalCards: 10,
   isGenerating: false,
@@ -71,12 +73,14 @@ export const useCarouselStore = create<CarouselState>((set) => ({
     // Salvar nos arrays separados baseado no template do card
     const cardsStandard = cards.filter(c => (c.carouselTemplate || 'standard') === 'standard');
     const cardsTweet = cards.filter(c => (c.carouselTemplate || 'standard') === 'tweet');
+    const cardsTweetExpanded = cards.filter(c => (c.carouselTemplate || 'standard') === 'tweetExpanded');
     const cardsVanderMaria = cards.filter(c => (c.carouselTemplate || 'standard') === 'vanderMaria');
 
     return {
       cards,
       cardsStandard,
       cardsTweet,
+      cardsTweetExpanded,
       cardsVanderMaria,  // ISOLADO: Mantém separado
     };
   }),
@@ -89,12 +93,14 @@ export const useCarouselStore = create<CarouselState>((set) => ({
     const updatedCards = state.cards.map(c => c.id === id ? { ...c, ...updates } : c);
     const cardsStandard = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'standard');
     const cardsTweet = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweet');
+    const cardsTweetExpanded = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweetExpanded');
     const cardsVanderMaria = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'vanderMaria');
 
     return {
       cards: updatedCards,
       cardsStandard,
       cardsTweet,
+      cardsTweetExpanded,
       cardsVanderMaria,  // ISOLADO: Re-filtra também
     };
   }),
@@ -103,12 +109,14 @@ export const useCarouselStore = create<CarouselState>((set) => ({
     const updatedCards = state.cards.map(c => ({ ...c, ...updates }));
     const cardsStandard = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'standard');
     const cardsTweet = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweet');
+    const cardsTweetExpanded = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweetExpanded');
     const cardsVanderMaria = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'vanderMaria');
 
     return {
       cards: updatedCards,
       cardsStandard,
       cardsTweet,
+      cardsTweetExpanded,
       cardsVanderMaria,  // ISOLADO: Re-filtra também
     };
   }),
