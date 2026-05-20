@@ -104,9 +104,9 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
                 style={{ backgroundColor: '#7A1C1C' }}
               >
                 <img
-                  src="/vm-logo.png"
+                  src="/vm-mark.png"
                   alt="Logo"
-                  className="w-[30px] h-[30px] object-contain"
+                  className="w-[44px] h-[44px] object-contain"
                 />
               </div>
               <div className="leading-tight">
@@ -214,9 +214,9 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
               <div className="w-full text-center space-y-5">
                 <div className="flex justify-center">
                   <img
-                    src="/vm-logo.png"
+                    src="/vm-mark.png"
                     alt="Logo"
-                    className="h-[40px] w-auto object-contain"
+                    className="h-[32px] w-auto object-contain"
                     style={{ filter: 'drop-shadow(0 0 0 rgba(0,0,0,0))' }}
                   />
                 </div>

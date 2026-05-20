@@ -775,7 +775,7 @@ async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCta
 
   // Logo (para avatar/monograma)
   logoImg = await Promise.race([
-    loadImage('/vm-logo.png').catch(() => null),
+    loadImage('/vm-mark.png').catch(() => null),
     new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
   ]);
 
