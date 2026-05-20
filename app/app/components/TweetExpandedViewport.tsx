@@ -46,7 +46,7 @@ export function TweetExpandedViewport() {
   };
 
   const handleCopy = async () => {
-    await copyToClipboard(cards.map(c => c.text).join('\n\n---\n\n'));
+    await copyToClipboard(cards);
     setExportMenu(false);
   };
 
@@ -125,4 +125,3 @@ export function TweetExpandedViewport() {
     </>
   );
 }
-
