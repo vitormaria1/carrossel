@@ -81,7 +81,7 @@ export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string 
     // Carregar e desenhar imagem de perfil
     try {
       // 🟡 Usar variável de ambiente em vez de URL hardcoded
-      const profileImageUrl = process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL;
+      const profileImageUrl = process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL || '/profile.jpg';
       if (profileImageUrl) {
         const profileImg = await loadImage(profileImageUrl);
         drawCircleImage(ctx, profileImg, profileX, profileY, profileImageSize / 2);
@@ -598,7 +598,7 @@ async function loadProfileImage(): Promise<HTMLImageElement | null> {
     profileImageCache = null;
   }
 
-  const profileImageUrl = 'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
+  const profileImageUrl = process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL || '/profile.jpg';
 
   return new Promise((resolve) => {
     const img = new Image();
@@ -759,11 +759,12 @@ function wrapHighlightTokens(
 }
 
 function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boolean): HTMLCanvasElement {
-  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, null);
+  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, null, null);
 }
 
 async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCtaSlide: boolean): Promise<HTMLCanvasElement> {
   let cardImg: HTMLImageElement | null = null;
+  let logoImg: HTMLImageElement | null = null;
 
   if (card.imageUrl) {
     cardImg = await Promise.race([
@@ -772,13 +773,20 @@ async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCta
     ]);
   }
 
-  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, cardImg);
+  // Logo (para avatar/monograma)
+  logoImg = await Promise.race([
+    loadImage('/vm-logo.png').catch(() => null),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
+  ]);
+
+  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, cardImg, logoImg);
 }
 
 function createTweetExpandedCardCanvasSyncInternal(
   card: CarouselCard,
   isCtaSlide: boolean,
-  cardImg: HTMLImageElement | null
+  cardImg: HTMLImageElement | null,
+  logoImg: HTMLImageElement | null
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { alpha: false });
@@ -808,11 +816,24 @@ function createTweetExpandedCardCanvasSyncInternal(
     ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#F4F0E8';
-    ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('VM', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
+    if (logoImg) {
+      // Desenhar logo centralizado no avatar (dentro do círculo)
+      const inner = 30;
+      const lx = avatarX + (avatarSize - inner) / 2;
+      const ly = avatarY + (avatarSize - inner) / 2;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(logoImg, lx, ly, inner, inner);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#F4F0E8';
+      ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('VM', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
+    }
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -914,10 +935,17 @@ function createTweetExpandedCardCanvasSyncInternal(
     ctx.textBaseline = 'top';
 
     // Monograma
-    ctx.font = '700 32px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = '#A8342F';
     const monoY = contentTop + 140;
-    ctx.fillText('VM', canvas.width / 2, monoY);
+    if (logoImg) {
+      // Logo no topo (monograma)
+      const logoH = 40;
+      const logoW = (logoImg.width / logoImg.height) * logoH;
+      ctx.drawImage(logoImg, (canvas.width - logoW) / 2, monoY - 4, logoW, logoH);
+    } else {
+      ctx.font = '700 32px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = '#A8342F';
+      ctx.fillText('VM', canvas.width / 2, monoY);
+    }
 
     // Texto CTA
     ctx.font = '600 28px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
