@@ -81,7 +81,9 @@ export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string 
     // Carregar e desenhar imagem de perfil
     try {
       // 🟡 Usar variável de ambiente em vez de URL hardcoded
-      const profileImageUrl = process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL || '/profile.jpg';
+      const profileImageUrl =
+        process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
+        'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/vander/IMG_2822.jpg%20(1).jpeg';
       if (profileImageUrl) {
         const profileImg = await loadImage(profileImageUrl);
         drawCircleImage(ctx, profileImg, profileX, profileY, profileImageSize / 2);
@@ -598,7 +600,9 @@ async function loadProfileImage(): Promise<HTMLImageElement | null> {
     profileImageCache = null;
   }
 
-  const profileImageUrl = process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL || '/profile.jpg';
+  const profileImageUrl =
+    process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
+    'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/vander/IMG_2822.jpg%20(1).jpeg';
 
   return new Promise((resolve) => {
     const img = new Image();
@@ -773,11 +777,13 @@ async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCta
     ]);
   }
 
-  // Logo (para avatar/monograma)
-  logoImg = await Promise.race([
-    loadImage('/vm-mark.png').catch(() => null),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
-  ]);
+  // Logo (apenas para CTA/último slide)
+  if (isCtaSlide) {
+    logoImg = await Promise.race([
+      loadImage('/vm-mark.png').catch(() => null),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
+    ]);
+  }
 
   return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, cardImg, logoImg);
 }
@@ -816,24 +822,11 @@ function createTweetExpandedCardCanvasSyncInternal(
     ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    if (logoImg) {
-      // Desenhar logo centralizado no avatar (dentro do círculo)
-      const inner = 30;
-      const lx = avatarX + (avatarSize - inner) / 2;
-      const ly = avatarY + (avatarSize - inner) / 2;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.drawImage(logoImg, lx, ly, inner, inner);
-      ctx.restore();
-    } else {
-      ctx.fillStyle = '#F4F0E8';
-      ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('VM', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
-    }
+    ctx.fillStyle = '#F4F0E8';
+    ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('VM', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -937,10 +930,10 @@ function createTweetExpandedCardCanvasSyncInternal(
     // Monograma
     const monoY = contentTop + 140;
     if (logoImg) {
-      // Logo no topo (monograma)
-      const logoH = 40;
+      // Logo no topo (maior)
+      const logoH = 56;
       const logoW = (logoImg.width / logoImg.height) * logoH;
-      ctx.drawImage(logoImg, (canvas.width - logoW) / 2, monoY - 4, logoW, logoH);
+      ctx.drawImage(logoImg, (canvas.width - logoW) / 2, monoY - 10, logoW, logoH);
     } else {
       ctx.font = '700 32px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
       ctx.fillStyle = '#A8342F';
