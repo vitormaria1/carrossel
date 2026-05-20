@@ -1,7 +1,7 @@
 'use client';
 
 import { CarouselCard, useCarouselStore } from '@/lib/store';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 interface TweetExpandedCardProps {
   card: CarouselCard;
@@ -42,10 +42,31 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
   const [isEditingCta, setIsEditingCta] = useState(false);
   const [editedText, setEditedText] = useState(card.text);
   const [editedCta, setEditedCta] = useState(card.cta || '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const isCtaSlide = isLast;
+  const shouldShowImage = idx === 0 || idx === 1 || isLast;
 
   const mainText = useMemo(() => renderHighlightedText(card.text), [card.text]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      updateCard(card.id, { imageUrl: dataUrl });
+      setIsUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    updateCard(card.id, { imageUrl: undefined });
+  };
 
   const saveText = () => {
     updateCard(card.id, { text: editedText });
@@ -99,14 +120,59 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
               <div className="relative w-full group">
                 {!isEditingText ? (
                   <>
-                    <div
-                      className="text-left font-semibold whitespace-pre-wrap"
-                      style={{
-                        fontSize: card.text.length < 80 ? 28 : card.text.length <= 150 ? 22 : 21,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {mainText}
+                    <div className="flex flex-col items-center justify-center gap-6">
+                      <div
+                        className="w-full text-left font-semibold whitespace-pre-wrap"
+                        style={{
+                          fontSize: card.text.length < 80 ? 28 : card.text.length <= 150 ? 22 : 21,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {mainText}
+                      </div>
+
+                      {shouldShowImage && (
+                        <div className="w-full">
+                          {card.imageUrl ? (
+                            <div className="relative">
+                              <img
+                                src={card.imageUrl}
+                                alt="Imagem do card"
+                                className="w-full max-h-64 object-cover rounded-lg border border-[#333]"
+                              />
+                              <div className="absolute top-2 right-2 flex gap-2">
+                                <button
+                                  onClick={() => fileInputRef.current?.click()}
+                                  className="px-3 py-1 rounded bg-[#333] text-[#F4F0E8] text-xs font-semibold"
+                                >
+                                  Trocar
+                                </button>
+                                <button
+                                  onClick={handleRemoveImage}
+                                  className="px-3 py-1 rounded bg-[#A8342F] text-[#F4F0E8] text-xs font-semibold"
+                                >
+                                  Remover
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="w-full py-4 rounded-lg border border-dashed border-[#333] text-[#F4F0E8] text-sm font-semibold bg-[#120909] hover:bg-[#160b0b] transition"
+                              disabled={isUploadingImage}
+                            >
+                              {isUploadingImage ? 'Carregando...' : '＋ Adicionar imagem'}
+                            </button>
+                          )}
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => setIsEditingText(true)}
@@ -182,6 +248,49 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
                   </div>
                 )}
 
+                {shouldShowImage && (
+                  <div className="w-full">
+                    {card.imageUrl ? (
+                      <div className="relative">
+                        <img
+                          src={card.imageUrl}
+                          alt="Imagem do card"
+                          className="w-full max-h-56 object-cover rounded-lg border border-[#333]"
+                        />
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-3 py-1 rounded bg-[#333] text-[#F4F0E8] text-xs font-semibold"
+                          >
+                            Trocar
+                          </button>
+                          <button
+                            onClick={handleRemoveImage}
+                            className="px-3 py-1 rounded bg-[#A8342F] text-[#F4F0E8] text-xs font-semibold"
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full py-4 rounded-lg border border-dashed border-[#333] text-[#F4F0E8] text-sm font-semibold bg-[#120909] hover:bg-[#160b0b] transition"
+                        disabled={isUploadingImage}
+                      >
+                        {isUploadingImage ? 'Carregando...' : '＋ Adicionar imagem'}
+                      </button>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </div>
+                )}
+
                 {!isEditingCta ? (
                   <div className="relative group flex justify-center">
                     <button className="px-6 py-3 rounded bg-[#A8342F] text-[#F4F0E8] font-bold uppercase tracking-wide">
@@ -245,4 +354,3 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
     </div>
   );
 }
-

@@ -219,7 +219,7 @@ export async function exportTweetExpandedCardAsPNG(
   isCtaSlide: boolean,
   fileName: string = 'tweet-expandido.jpg'
 ) {
-  const canvas = createTweetExpandedCardCanvasSync(card, isCtaSlide);
+  const canvas = await createTweetExpandedCardCanvasWithImages(card, isCtaSlide);
 
   return new Promise<void>((resolve) => {
     canvas.toBlob(
@@ -759,6 +759,27 @@ function wrapHighlightTokens(
 }
 
 function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boolean): HTMLCanvasElement {
+  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, null);
+}
+
+async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCtaSlide: boolean): Promise<HTMLCanvasElement> {
+  let cardImg: HTMLImageElement | null = null;
+
+  if (card.imageUrl) {
+    cardImg = await Promise.race([
+      loadImage(card.imageUrl).catch(() => null),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+    ]);
+  }
+
+  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, cardImg);
+}
+
+function createTweetExpandedCardCanvasSyncInternal(
+  card: CarouselCard,
+  isCtaSlide: boolean,
+  cardImg: HTMLImageElement | null
+): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('Canvas context not available');
@@ -852,6 +873,41 @@ function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boole
       }
       y += lineHeight;
     }
+
+    if (cardImg) {
+      const imageGap = 36;
+      const maxImageHeight = 320;
+      const maxImageWidth = contentWidth;
+      const aspect = cardImg.width / cardImg.height || 1;
+      let imageW = maxImageWidth;
+      let imageH = imageW / aspect;
+      if (imageH > maxImageHeight) {
+        imageH = maxImageHeight;
+        imageW = imageH * aspect;
+      }
+      imageW = Math.min(imageW, maxImageWidth);
+      imageH = Math.min(imageH, maxImageHeight);
+      const imageX = paddingX + (contentWidth - imageW) / 2;
+      const imageY = Math.min(y + imageGap, contentBottom - imageH);
+      const radius = 18;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(imageX + radius, imageY);
+      ctx.lineTo(imageX + imageW - radius, imageY);
+      ctx.quadraticCurveTo(imageX + imageW, imageY, imageX + imageW, imageY + radius);
+      ctx.lineTo(imageX + imageW, imageY + imageH - radius);
+      ctx.quadraticCurveTo(imageX + imageW, imageY + imageH, imageX + imageW - radius, imageY + imageH);
+      ctx.lineTo(imageX + radius, imageY + imageH);
+      ctx.quadraticCurveTo(imageX, imageY + imageH, imageX, imageY + imageH - radius);
+      ctx.lineTo(imageX, imageY + radius);
+      ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
+      ctx.closePath();
+      ctx.clip();
+
+      ctx.drawImage(cardImg, imageX, imageY, imageW, imageH);
+      ctx.restore();
+    }
   } else {
     // CTA Slide
     ctx.textAlign = 'center';
@@ -872,6 +928,43 @@ function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boole
     for (const line of lines) {
       ctx.fillText(line, canvas.width / 2, y);
       y += 38;
+    }
+
+    if (cardImg) {
+      const imageGap = 30;
+      const maxImageHeight = 260;
+      const maxImageWidth = contentWidth;
+      const aspect = cardImg.width / cardImg.height || 1;
+      let imageW = maxImageWidth;
+      let imageH = imageW / aspect;
+      if (imageH > maxImageHeight) {
+        imageH = maxImageHeight;
+        imageW = imageH * aspect;
+      }
+      imageW = Math.min(imageW, maxImageWidth);
+      imageH = Math.min(imageH, maxImageHeight);
+      const imageX = paddingX + (contentWidth - imageW) / 2;
+      const imageY = Math.min(y + imageGap, contentBottom - imageH - 140);
+      const radius = 18;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(imageX + radius, imageY);
+      ctx.lineTo(imageX + imageW - radius, imageY);
+      ctx.quadraticCurveTo(imageX + imageW, imageY, imageX + imageW, imageY + radius);
+      ctx.lineTo(imageX + imageW, imageY + imageH - radius);
+      ctx.quadraticCurveTo(imageX + imageW, imageY + imageH, imageX + imageW - radius, imageY + imageH);
+      ctx.lineTo(imageX + radius, imageY + imageH);
+      ctx.quadraticCurveTo(imageX, imageY + imageH, imageX, imageY + imageH - radius);
+      ctx.lineTo(imageX, imageY + radius);
+      ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
+      ctx.closePath();
+      ctx.clip();
+
+      ctx.drawImage(cardImg, imageX, imageY, imageW, imageH);
+      ctx.restore();
+
+      y = imageY + imageH;
     }
 
     // Botão
@@ -919,7 +1012,7 @@ async function generateCardBase64Internal(card: CarouselCard, template: 'standar
     if (template === 'tweet') {
       canvas = await createTweetCardCanvasSyncWithImages(card, profileImg);
     } else if (template === 'tweetExpanded') {
-      canvas = createTweetExpandedCardCanvasSync(card, false);
+      canvas = await createTweetExpandedCardCanvasWithImages(card, false);
     } else {
       canvas = createCardCanvasInternal(card, template, profileImg);
     }
