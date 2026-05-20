@@ -37,6 +37,10 @@ function renderHighlightedText(text: string) {
 }
 
 export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpandedCardProps) {
+  const profileImageUrl =
+    process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
+    'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/vander/IMG_2822.jpg%20(1).jpeg';
+
   const { updateCard } = useCarouselStore();
   const [isEditingText, setIsEditingText] = useState(false);
   const [isEditingCta, setIsEditingCta] = useState(false);
@@ -100,12 +104,14 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
           {!isCtaSlide && (
             <div className="flex items-center gap-3">
               <div
-                className="w-[44px] h-[44px] rounded-full flex items-center justify-center flex-shrink-0"
+                className="w-[44px] h-[44px] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
                 style={{ backgroundColor: '#7A1C1C' }}
               >
-                <span className="font-bold tracking-wide" style={{ color: '#F4F0E8' }}>
-                  VM
-                </span>
+                <img
+                  src={profileImageUrl}
+                  alt="Foto de perfil"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="leading-tight">
                 <div className="text-[14px] font-bold text-[#F4F0E8]">Vander Maria</div>
@@ -214,7 +220,7 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
                   <img
                     src="/vm-mark.png"
                     alt="Logo"
-                    className="h-[56px] w-auto object-contain"
+                    className="h-[72px] w-auto object-contain"
                     style={{ filter: 'drop-shadow(0 0 0 rgba(0,0,0,0))' }}
                   />
                 </div>

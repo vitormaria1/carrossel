@@ -763,12 +763,13 @@ function wrapHighlightTokens(
 }
 
 function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boolean): HTMLCanvasElement {
-  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, null, null);
+  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, null, null, null);
 }
 
 async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCtaSlide: boolean): Promise<HTMLCanvasElement> {
   let cardImg: HTMLImageElement | null = null;
   let logoImg: HTMLImageElement | null = null;
+  let profileImg: HTMLImageElement | null = null;
 
   if (card.imageUrl) {
     cardImg = await Promise.race([
@@ -785,14 +786,25 @@ async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCta
     ]);
   }
 
-  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, cardImg, logoImg);
+  if (!isCtaSlide) {
+    const profileUrl =
+      process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
+      'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/vander/IMG_2822.jpg%20(1).jpeg';
+    profileImg = await Promise.race([
+      loadImage(profileUrl).catch(() => null),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
+    ]);
+  }
+
+  return createTweetExpandedCardCanvasSyncInternal(card, isCtaSlide, cardImg, logoImg, profileImg);
 }
 
 function createTweetExpandedCardCanvasSyncInternal(
   card: CarouselCard,
   isCtaSlide: boolean,
   cardImg: HTMLImageElement | null,
-  logoImg: HTMLImageElement | null
+  logoImg: HTMLImageElement | null,
+  profileImg: HTMLImageElement | null
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { alpha: false });
@@ -817,16 +829,20 @@ function createTweetExpandedCardCanvasSyncInternal(
     const avatarX = paddingX;
     const avatarY = paddingY;
 
-    ctx.fillStyle = '#7A1C1C';
-    ctx.beginPath();
-    ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
-    ctx.fill();
+    if (profileImg) {
+      drawCircleImage(ctx, profileImg, avatarX, avatarY, avatarSize / 2);
+    } else {
+      ctx.fillStyle = '#7A1C1C';
+      ctx.beginPath();
+      ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+      ctx.fill();
 
-    ctx.fillStyle = '#F4F0E8';
-    ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('VM', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
+      ctx.fillStyle = '#F4F0E8';
+      ctx.font = '700 22px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('VM', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
+    }
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -931,9 +947,9 @@ function createTweetExpandedCardCanvasSyncInternal(
     const monoY = contentTop + 140;
     if (logoImg) {
       // Logo no topo (maior)
-      const logoH = 56;
+      const logoH = 72;
       const logoW = (logoImg.width / logoImg.height) * logoH;
-      ctx.drawImage(logoImg, (canvas.width - logoW) / 2, monoY - 10, logoW, logoH);
+      ctx.drawImage(logoImg, (canvas.width - logoW) / 2, monoY - 16, logoW, logoH);
     } else {
       ctx.font = '700 32px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
       ctx.fillStyle = '#A8342F';
