@@ -38,8 +38,7 @@ function renderHighlightedText(text: string) {
 
 export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpandedCardProps) {
   const profileImageUrl =
-    process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
-    'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/vander/IMG_2822.jpg%20(1).jpeg';
+    'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
 
   const { updateCard } = useCarouselStore();
   const [isEditingText, setIsEditingText] = useState(false);

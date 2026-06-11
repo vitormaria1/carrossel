@@ -788,8 +788,7 @@ async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCta
 
   if (!isCtaSlide) {
     const profileUrl =
-      process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
-      'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/vander/IMG_2822.jpg%20(1).jpeg';
+      'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
     profileImg = await Promise.race([
       loadImage(profileUrl).catch(() => null),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
@@ -904,6 +903,7 @@ function createTweetExpandedCardCanvasSyncInternal(
       y += lineHeight;
     }
 
+    // Imagem (se existir): abaixo do bloco de texto, respeitando footer
     if (cardImg) {
       const imageGap = 36;
       const maxImageHeight = 320;
@@ -967,6 +967,7 @@ function createTweetExpandedCardCanvasSyncInternal(
       y += 38;
     }
 
+    // Imagem (se existir): entre texto e botão
     if (cardImg) {
       const imageGap = 30;
       const maxImageHeight = 260;
