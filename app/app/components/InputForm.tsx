@@ -166,7 +166,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
 
       <button
         onClick={handleGenerate}
-        disabled={!idea.trim() || isLoading || idea.length < MIN_IDEA_LENGTH}
+        disabled={isLoading}
         className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition transform hover:scale-105 disabled:hover:scale-100 shadow-md hover:shadow-lg"
       >
         {isLoading ? (
