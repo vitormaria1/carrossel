@@ -71,7 +71,7 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
       <div className="px-4 py-3">
         <div className="flex items-start gap-3">
           <img
-            src="https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/vander/IMG_2822.jpg%20(1).jpeg"
+            src="https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg"
             alt="Profile"
             className="w-12 h-12 rounded-full flex-shrink-0"
           />
