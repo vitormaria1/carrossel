@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useCarouselStore } from '@/lib/store';
 import { generateCardBase64 } from '@/lib/export'; // Fallback para regeneração se necessário
+import { renderVanderMariaCardToBase64 } from '@/lib/vander-maria';
 
 export function PublishButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,8 +13,22 @@ export function PublishButton() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const { cardsTweet } = useCarouselStore();
-  const cards = cardsTweet;
+  const {
+    carouselTemplate,
+    cardsStandard,
+    cardsTweet,
+    cardsTweetExpanded,
+    cardsVanderMaria,
+  } = useCarouselStore();
+
+  const cards =
+    carouselTemplate === 'tweet'
+      ? cardsTweet
+      : carouselTemplate === 'tweetExpanded'
+      ? cardsTweetExpanded
+      : carouselTemplate === 'vanderMaria'
+      ? cardsVanderMaria
+      : cardsStandard;
 
   const handlePublish = async () => {
     if (!cards || cards.length === 0) {
@@ -38,7 +53,7 @@ export function PublishButton() {
     // Criar novo AbortController para esta requisição
     abortControllerRef.current = new AbortController();
 
-    const template = 'tweet';
+    const template = carouselTemplate;
 
     setIsLoading(true);
     setStatus('publishing');
@@ -64,7 +79,16 @@ export function PublishButton() {
         try {
           const cardTemplate = (cards[i] as any).carouselTemplate || template;
           console.log(`📸 Card ${i + 1}/${cards.length}: gerando base64 (tem imagem: ${!!(cards[i] as any).imageUrl})`);
-          const base64 = await generateCardBase64(cards[i], cardTemplate as 'standard' | 'tweet');
+
+          let base64: string;
+          if (cardTemplate === 'vanderMaria') {
+            base64 = await renderVanderMariaCardToBase64(cards[i] as any);
+          } else {
+            base64 = await generateCardBase64(
+              cards[i],
+              cardTemplate as 'standard' | 'tweet' | 'tweetExpanded'
+            );
+          }
           base64Images.push(base64);
           console.log(`✅ Card ${i + 1} base64 gerado (${base64.length} chars)`);
         } catch (error) {
@@ -107,6 +131,8 @@ export function PublishButton() {
           cards: [],
           cardsStandard: [],
           cardsTweet: [],
+          cardsTweetExpanded: [],
+          cardsVanderMaria: [],
         });
 
         console.log('🧹 Store resetado. Pronto para novo carrossel.');

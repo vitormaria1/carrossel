@@ -41,7 +41,7 @@ interface CarouselSlide {
 interface PublishRequest {
   slides: CarouselSlide[];
   caption: string;
-  carouselTemplate?: 'standard' | 'tweet';
+  carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
   base64Images?: string[];
 }
 
