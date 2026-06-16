@@ -16,7 +16,6 @@ export function PublishButton() {
   const {
     carouselTemplate,
     cards,
-    clearAllCards,
   } = useCarouselStore();
 
   const handlePublish = async () => {
@@ -145,13 +144,10 @@ export function PublishButton() {
       setStatus('success');
       setPostUrl(data.url);
 
-      // 🟡 Resetar store após sucesso
+      // Mantém o último carrossel gerado até que outro seja criado.
       setTimeout(() => {
         setStatus('idle');
-
-        clearAllCards();
-
-        console.log('🧹 Store resetado. Pronto para novo carrossel.');
+        console.log('✅ Carrossel mantido em memória para reuso.');
       }, 5000);
     } catch (error) {
       setStatus('error');
