@@ -12,6 +12,7 @@ import { generateVanderMariaCarousel } from '@/lib/vander-maria';
 
 export default function HomeClient() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   const {
     idea,
     prompt,
@@ -26,6 +27,18 @@ export default function HomeClient() {
   } = useCarouselStore();
   const { expertise, yearsExperience, mainAchievement, productName, targetAudience, toneOfVoice, objective } =
     useUserContext();
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.resolve(useCarouselStore.persist.rehydrate()).finally(() => {
+      if (active) setIsHydrated(true);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (carouselTemplate === 'vanderMaria' && totalCards !== 5) {
@@ -180,7 +193,15 @@ export default function HomeClient() {
         </div>
 
         <div className="flex-1 min-w-0 overflow-hidden">
-          <TemplateViewport />
+          {isHydrated ? (
+            <TemplateViewport />
+          ) : (
+            <div className="flex h-full min-h-[32rem] items-center justify-center rounded-xl border border-gray-200 bg-white">
+              <div className="text-center text-sm text-gray-500">
+                Restaurando carrossel salvo...
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
