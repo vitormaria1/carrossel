@@ -82,8 +82,12 @@ interface GenerateCarouselParams {
   customization?: string;
   totalCards: number;
   expertise?: string;
+  yearsExperience?: number;
+  mainAchievement?: string;
+  productName?: string;
   targetAudience?: string;
   toneOfVoice?: string;
+  objective?: string;
   carouselType?: string;
 }
 
@@ -107,8 +111,12 @@ export async function generateCarouselWithAgent(
     customization,
     totalCards,
     expertise,
+    yearsExperience,
+    mainAchievement,
+    productName,
     targetAudience,
     toneOfVoice,
+    objective,
     carouselType,
   } = params;
 
@@ -126,8 +134,12 @@ export async function generateCarouselWithAgent(
 
 ${customization ? `DIREÇÃO: ${customization}` : ""}
 ${expertise ? `EXPERTISE: ${expertise}` : ""}
+${yearsExperience ? `EXPERIÊNCIA: ${yearsExperience} anos` : ""}
+${mainAchievement ? `RESULTADO PRINCIPAL: ${mainAchievement}` : ""}
+${productName ? `PRODUTO/SERVIÇO: ${productName}` : ""}
 ${targetAudience ? `PÚBLICO: ${targetAudience}` : ""}
 ${toneOfVoice ? `TOM: ${toneOfVoice}` : "Tom: claro, direto, conversacional"}
+${objective ? `OBJETIVO: ${objective}` : ""}
 ${carouselType && carouselType !== 'auto' ? `TIPO: ${carouselType}` : "TIPO: detecte automáticamente"}
 
 ESTRUTURA:

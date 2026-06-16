@@ -15,20 +15,21 @@ export function PublishButton() {
 
   const {
     carouselTemplate,
-    cardsStandard,
-    cardsTweet,
-    cardsTweetExpanded,
-    cardsVanderMaria,
+    cards,
+    clearAllCards,
   } = useCarouselStore();
 
-  const cards =
-    carouselTemplate === 'tweet'
-      ? cardsTweet
-      : carouselTemplate === 'tweetExpanded'
-      ? cardsTweetExpanded
-      : carouselTemplate === 'vanderMaria'
-      ? cardsVanderMaria
-      : cardsStandard;
+  function base64ToBlob(base64: string, mimeType = 'image/jpeg') {
+    const rawBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
+    const byteCharacters = atob(rawBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+  }
 
   const handlePublish = async () => {
     if (!cards || cards.length === 0) {
@@ -99,24 +100,39 @@ export function PublishButton() {
 
       console.log(`✅ ${base64Images.length} base64s prontos para publicação`);
 
-      // Enviar base64s + slides para o servidor
+      // Enviar imagens como multipart/form-data para reduzir o payload do request
       console.log('📤 Enviando para o servidor...');
+      const formData = new FormData();
+      formData.append('slides', JSON.stringify(cards));
+      formData.append('caption', caption);
+      formData.append('carouselTemplate', template);
+
+      base64Images.forEach((base64, index) => {
+        const blob = base64ToBlob(base64);
+        formData.append(
+          'images',
+          blob,
+          `card-${String(index + 1).padStart(2, '0')}.jpg`
+        );
+      });
+
       const response = await fetch('/api/publish-instagram', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slides: cards,
-          caption: caption,
-          carouselTemplate: template,
-          base64Images: base64Images,
-        }),
+        body: formData,
         signal: abortControllerRef.current?.signal, // 🔴 Usar AbortSignal
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await response.json()
+        : { error: await response.text() };
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao publicar');
+        const rawError = String(data.error || '');
+        if (/request entity too large/i.test(rawError)) {
+          throw new Error('O payload da publicação ficou grande demais. Reduza o número de slides ou o tamanho das imagens.');
+        }
+        throw new Error(rawError || 'Erro ao publicar');
       }
 
       setStatus('success');
@@ -126,14 +142,7 @@ export function PublishButton() {
       setTimeout(() => {
         setStatus('idle');
 
-        // Limpar cards do store para próxima geração
-        useCarouselStore.setState({
-          cards: [],
-          cardsStandard: [],
-          cardsTweet: [],
-          cardsTweetExpanded: [],
-          cardsVanderMaria: [],
-        });
+        clearAllCards();
 
         console.log('🧹 Store resetado. Pronto para novo carrossel.');
       }, 5000);

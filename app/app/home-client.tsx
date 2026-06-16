@@ -7,14 +7,31 @@ import { UserContextForm } from './components/UserContextForm';
 import { PublishButton } from './components/PublishButton';
 import { useCarouselStore } from '@/lib/store';
 import { useUserContext } from '@/lib/user-context';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { generateVanderMariaCarousel } from '@/lib/vander-maria';
 
 export default function HomeClient() {
   const [isLoading, setIsLoading] = useState(false);
-  const { idea, prompt, totalCards, setCards, setIsGenerating, carouselType, carouselTemplate } = useCarouselStore();
+  const {
+    idea,
+    prompt,
+    totalCards,
+    setCards,
+    setIsGenerating,
+    carouselType,
+    carouselTemplate,
+    setTotalCards,
+    cards,
+    docs,
+  } = useCarouselStore();
   const { expertise, yearsExperience, mainAchievement, productName, targetAudience, toneOfVoice, objective } =
     useUserContext();
+
+  useEffect(() => {
+    if (carouselTemplate === 'vanderMaria' && totalCards !== 5) {
+      setTotalCards(5);
+    }
+  }, [carouselTemplate, totalCards, setTotalCards]);
 
   const handleGenerate = async () => {
     if (!idea) return;
@@ -45,19 +62,28 @@ export default function HomeClient() {
         return;
       }
 
-      const res = await fetch('/api/generate-agent', {
+      const endpoint = docs.length > 0 ? '/api/generate' : '/api/generate-agent';
+      const requestBody = {
+        idea,
+        prompt,
+        customization: prompt,
+        totalCards,
+        docIds: docs.map((doc) => doc.id),
+        expertise,
+        yearsExperience,
+        mainAchievement,
+        productName,
+        targetAudience,
+        toneOfVoice,
+        objective,
+        carouselTemplate,
+        carouselType: carouselType === 'auto' ? undefined : carouselType,
+      };
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          idea,
-          customization: prompt,
-          totalCards,
-          expertise,
-          targetAudience,
-          toneOfVoice,
-          carouselTemplate: carouselTemplate,
-          carouselType: carouselType === 'auto' ? undefined : carouselType,
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!res.ok) {
@@ -96,22 +122,28 @@ export default function HomeClient() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
-      <header className="bg-gradient-to-r from-gray-900 via-gray-800 to-black border-b border-gray-700">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#f8fbff,white_40%,#f3f4f6)]">
+      <header className="border-b border-gray-700 bg-gradient-to-r from-gray-950 via-gray-900 to-black">
         <div className="px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-black text-white tracking-tight">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="max-w-2xl">
+              <h1 className="text-4xl font-black tracking-tight text-white">
                 carrossel<span className="text-blue-500">.</span>ai
               </h1>
-              <p className="text-gray-400 mt-1 text-sm">Transforme ideias em carrosséis que convertem</p>
+              <p className="mt-2 text-sm text-gray-400">
+                Transforme ideias, ofertas e documentos em carrosséis prontos para publicar.
+              </p>
             </div>
-            <div className="text-4xl">📱</div>
+            <div className="grid grid-cols-3 gap-3 text-center text-white">
+              <StatPill label="Template" value={carouselTemplate === 'tweetExpanded' ? 'Expandido' : carouselTemplate === 'vanderMaria' ? 'Vander' : carouselTemplate === 'tweet' ? 'Tweet' : 'Standard'} />
+              <StatPill label="Cards" value={String(cards.length || totalCards)} />
+              <StatPill label="Objetivo" value={objective} />
+            </div>
           </div>
         </div>
       </header>
 
-      <section className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-200 py-12">
+      <section className="border-b border-gray-200 bg-gradient-to-b from-gray-50 to-white py-12">
         <div className="px-6">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -126,13 +158,18 @@ export default function HomeClient() {
 
       <TemplateSelector />
 
-      <div className="flex gap-8 px-6 py-8 min-h-[calc(100vh-280px)]">
+      <div className="flex min-h-[calc(100vh-280px)] gap-8 px-6 py-8">
         <div className="w-auto flex-shrink-0">
-          <div className="sticky top-8 space-y-4 w-80">
+          <div className="sticky top-8 w-80 space-y-4">
             <UserContextForm />
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                 <h3 className="text-white font-bold text-lg">Criar Carrossel</h3>
+                <p className="mt-1 text-xs text-blue-100">
+                  {carouselTemplate === 'vanderMaria'
+                    ? 'Fluxo premium com 5 slides e renderização cinemática.'
+                    : 'Defina o briefing e gere uma versão pronta para editar e exportar.'}
+                </p>
               </div>
               <div className="p-6 max-h-96 overflow-y-auto space-y-4">
                 <InputForm onGenerate={handleGenerate} isLoading={isLoading} />
@@ -153,5 +190,14 @@ export default function HomeClient() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function StatPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-gray-400">{label}</div>
+      <div className="mt-1 text-sm font-semibold capitalize">{value}</div>
+    </div>
   );
 }

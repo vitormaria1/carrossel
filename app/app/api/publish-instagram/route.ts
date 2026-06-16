@@ -45,6 +45,12 @@ interface PublishRequest {
   base64Images?: string[];
 }
 
+interface PublishFormRequest {
+  slides?: string;
+  caption?: string;
+  carouselTemplate?: string;
+}
+
 interface EnrichedSlide extends CarouselSlide {
   colors?: { bg: string; text: string; accent?: string };
   carouselType?: string;
@@ -69,9 +75,9 @@ async function uploadImageToInstagram(imageUrl: string, businessAccountId: strin
     );
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readErrorResponse(response);
       console.error('Instagram API error:', error);
-      throw new Error(error.error?.message || 'Falha ao fazer upload');
+      throw new Error(error || 'Falha ao fazer upload');
     }
 
     const data = await response.json();
@@ -98,9 +104,9 @@ async function createCarouselContainer(childrenIds: string[], businessAccountId:
     );
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readErrorResponse(response);
       console.error('Carousel creation error:', error);
-      throw new Error(error.error?.message || 'Falha ao criar carrossel');
+      throw new Error(error || 'Falha ao criar carrossel');
     }
 
     const data = await response.json();
@@ -127,9 +133,9 @@ async function publishMedia(creationId: string, caption: string, businessAccount
     );
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readErrorResponse(response);
       console.error('Publish error:', error);
-      throw new Error(error.error?.message || 'Falha ao publicar');
+      throw new Error(error || 'Falha ao publicar');
     }
 
     const data = await response.json();
@@ -140,15 +146,24 @@ async function publishMedia(creationId: string, caption: string, businessAccount
   }
 }
 
-async function generateImageUrl(slide: CarouselSlide, index: number): Promise<string> {
-  const bgColor = (slide.colors?.bg || '#FFFFFF').replace('#', '%23');
-  const textColor = (slide.colors?.text || '#0C1014').replace('#', '%23');
-  const headline = encodeURIComponent(slide.headline || 'Carrossel');
-  const text = encodeURIComponent(slide.text || 'Conteúdo');
+async function getMediaPermalink(mediaId: string): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `${INSTAGRAM_GRAPH_API}/${mediaId}?fields=permalink&access_token=${ACCESS_TOKEN}`
+    );
 
-  // Use uma imagem pública e real que o Instagram aceita
-  // Por enquanto, usar Unsplash como fallback confiável
-  return `https://images.unsplash.com/photo-1552664730-d307ca884978?w=1080&h=1350&fit=crop&crop=entropy&cs=tinysrgb&q=80`;
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Permalink lookup error:', error);
+      return null;
+    }
+
+    const data = await response.json();
+    return typeof data.permalink === 'string' ? data.permalink : null;
+  } catch (error) {
+    console.error('Error fetching permalink:', error);
+    return null;
+  }
 }
 
 async function getBusinessAccountId(): Promise<string> {
@@ -162,9 +177,9 @@ async function getBusinessAccountId(): Promise<string> {
     );
 
     if (!meResponse.ok) {
-      const error = await meResponse.json();
+      const error = await readErrorResponse(meResponse);
       console.error('Error getting user:', error);
-      throw new Error(error.error?.message || 'Falha ao buscar usuário');
+      throw new Error(error || 'Falha ao buscar usuário');
     }
 
     const meData = await meResponse.json();
@@ -181,6 +196,39 @@ async function getBusinessAccountId(): Promise<string> {
   }
 }
 
+async function readErrorResponse(response: Response): Promise<string> {
+  const contentType = response.headers.get('content-type') || '';
+  const body = await response.text();
+
+  if (!body) {
+    return '';
+  }
+
+  if (contentType.includes('application/json')) {
+    try {
+      const data = JSON.parse(body);
+
+      if (typeof data === 'string') {
+        return data;
+      }
+
+      if (data?.error?.message) {
+        return data.error.message;
+      }
+
+      if (data?.error) {
+        return typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+      }
+
+      return JSON.stringify(data);
+    } catch {
+      return body;
+    }
+  }
+
+  return body;
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!ACCESS_TOKEN) {
@@ -190,7 +238,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body: PublishRequest = await request.json();
+    const contentType = request.headers.get('content-type') || '';
+    let body: PublishRequest;
+    let uploadedImages: File[] = [];
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const slidesRaw = formData.get('slides')?.toString() || '[]';
+      const formPayload: PublishFormRequest = {
+        slides: slidesRaw,
+        caption: formData.get('caption')?.toString(),
+        carouselTemplate: formData.get('carouselTemplate')?.toString(),
+      };
+
+      let parsedSlides: CarouselSlide[] = [];
+      try {
+        parsedSlides = JSON.parse(formPayload.slides || '[]');
+      } catch {
+        return NextResponse.json(
+          { error: 'Payload de slides inválido' },
+          { status: 400 }
+        );
+      }
+
+      body = {
+        slides: parsedSlides,
+        caption: formPayload.caption || '',
+        carouselTemplate: formPayload.carouselTemplate as PublishRequest['carouselTemplate'],
+      };
+
+      uploadedImages = formData
+        .getAll('images')
+        .filter((item): item is File => item instanceof File);
+    } else {
+      body = (await request.json()) as PublishRequest;
+    }
 
     if (!body.slides || body.slides.length === 0) {
       return NextResponse.json(
@@ -206,9 +288,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!body.base64Images || body.base64Images.length !== body.slides.length) {
+    let base64Images = body.base64Images || [];
+
+    if (uploadedImages.length > 0) {
+      base64Images = await Promise.all(
+        uploadedImages.map(async (file) => {
+          const buffer = Buffer.from(await file.arrayBuffer());
+          return buffer.toString('base64');
+        })
+      );
+    }
+
+    if (!base64Images || base64Images.length !== body.slides.length) {
       return NextResponse.json(
-        { error: 'Base64 images não fornecidos ou quantidade incorreta' },
+        { error: 'Imagens não fornecidas ou quantidade incorreta' },
         { status: 400 }
       );
     }
@@ -216,7 +309,7 @@ export async function POST(request: NextRequest) {
     // Extrair template (padrão: 'standard')
     const template = body.carouselTemplate || 'standard';
     console.log(`📐 Template: ${template}`);
-    console.log(`✅ Recebido: ${body.base64Images.length} base64s do browser`);
+    console.log(`✅ Recebido: ${base64Images.length} imagens do browser`);
 
     // Obter Business Account ID dinâmicamente
     const businessAccountId = await getBusinessAccountId();
@@ -231,7 +324,7 @@ export async function POST(request: NextRequest) {
 
     for (let i = 0; i < body.slides.length; i++) {
       const slide = body.slides[i] as EnrichedSlide;
-      const base64 = body.base64Images[i];
+      const base64 = base64Images[i];
 
       console.log(`Processando slide ${i + 1}/${body.slides.length}: "${slide.headline?.substring(0, 50) || 'Sem headline'}..."`);
 
@@ -271,11 +364,12 @@ export async function POST(request: NextRequest) {
     console.log('📤 Publicando carrossel...');
     const publishedId = await publishMedia(carouselId, body.caption || '', businessAccountId);
     console.log(`✅ Publicado! ID: ${publishedId}`);
+    const permalink = await getMediaPermalink(publishedId);
 
     const response = NextResponse.json({
       success: true,
       postId: publishedId,
-      url: `https://instagram.com/p/${publishedId}`,
+      url: permalink || `https://instagram.com/p/${publishedId}`,
       message: 'Carrossel publicado com sucesso!'
     });
 

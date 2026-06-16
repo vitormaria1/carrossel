@@ -25,6 +25,8 @@ export interface UploadedDoc {
 export type CarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
 export type CarouselType = 'transformacao' | 'autoridade' | 'ideologico' | 'educacional' | 'vendas' | 'auto';
 
+type TemplateBuckets = Record<CarouselTemplate, CarouselCard[]>;
+
 export interface CarouselState {
   idea: string;
   prompt: string;
@@ -51,6 +53,47 @@ export interface CarouselState {
   addDoc: (doc: UploadedDoc) => void;
   removeDoc: (id: string) => void;
   setDocs: (docs: UploadedDoc[]) => void;
+  clearAllCards: () => void;
+}
+
+const EMPTY_TEMPLATE_BUCKETS: TemplateBuckets = {
+  standard: [],
+  tweet: [],
+  tweetExpanded: [],
+  vanderMaria: [],
+};
+
+function detectTemplate(cards: CarouselCard[]): CarouselTemplate {
+  const firstCard = cards[0];
+  return firstCard?.carouselTemplate || 'standard';
+}
+
+function selectCardsForTemplate(
+  buckets: TemplateBuckets,
+  template: CarouselTemplate
+): CarouselCard[] {
+  return buckets[template];
+}
+
+function patchTemplateBuckets(
+  state: CarouselState,
+  template: CarouselTemplate,
+  cards: CarouselCard[]
+): Partial<CarouselState> {
+  const nextBuckets: TemplateBuckets = {
+    standard: template === 'standard' ? cards : state.cardsStandard,
+    tweet: template === 'tweet' ? cards : state.cardsTweet,
+    tweetExpanded: template === 'tweetExpanded' ? cards : state.cardsTweetExpanded,
+    vanderMaria: template === 'vanderMaria' ? cards : state.cardsVanderMaria,
+  };
+
+  return {
+    cards: selectCardsForTemplate(nextBuckets, state.carouselTemplate === template ? template : state.carouselTemplate),
+    cardsStandard: nextBuckets.standard,
+    cardsTweet: nextBuckets.tweet,
+    cardsTweetExpanded: nextBuckets.tweetExpanded,
+    cardsVanderMaria: nextBuckets.vanderMaria,
+  };
 }
 
 export const useCarouselStore = create<CarouselState>((set) => ({
@@ -60,7 +103,7 @@ export const useCarouselStore = create<CarouselState>((set) => ({
   cardsStandard: [],
   cardsTweet: [],
   cardsTweetExpanded: [],
-  cardsVanderMaria: [],  // ISOLADO: Vander Maria state separado
+  cardsVanderMaria: [],
   totalCards: 10,
   isGenerating: false,
   docs: [],
@@ -69,56 +112,50 @@ export const useCarouselStore = create<CarouselState>((set) => ({
 
   setIdea: (idea) => set({ idea }),
   setPrompt: (prompt) => set({ prompt }),
-  setCards: (cards) => set((state) => {
-    // Salvar nos arrays separados baseado no template do card
-    const cardsStandard = cards.filter(c => (c.carouselTemplate || 'standard') === 'standard');
-    const cardsTweet = cards.filter(c => (c.carouselTemplate || 'standard') === 'tweet');
-    const cardsTweetExpanded = cards.filter(c => (c.carouselTemplate || 'standard') === 'tweetExpanded');
-    const cardsVanderMaria = cards.filter(c => (c.carouselTemplate || 'standard') === 'vanderMaria');
-
-    return {
-      cards,
-      cardsStandard,
-      cardsTweet,
-      cardsTweetExpanded,
-      cardsVanderMaria,  // ISOLADO: Mantém separado
-    };
-  }),
+  setCards: (cards) => set((state) => patchTemplateBuckets(state, detectTemplate(cards), cards)),
   setTotalCards: (total) => set({ totalCards: total }),
   setIsGenerating: (generating) => set({ isGenerating: generating }),
-  setCarouselTemplate: (template) => set({ carouselTemplate: template }),
+  setCarouselTemplate: (template) => set((state) => ({
+    carouselTemplate: template,
+    cards: selectCardsForTemplate(
+      {
+        standard: state.cardsStandard,
+        tweet: state.cardsTweet,
+        tweetExpanded: state.cardsTweetExpanded,
+        vanderMaria: state.cardsVanderMaria,
+      },
+      template
+    ),
+  })),
   setCarouselType: (type) => set({ carouselType: type }),
   updateCard: (id, updates) => set((state) => {
-    // 🟡 CRÍTICO: Quando atualiza um card, precisa re-filtrar para cardsStandard/cardsTweet/cardsVanderMaria
-    const updatedCards = state.cards.map(c => c.id === id ? { ...c, ...updates } : c);
-    const cardsStandard = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'standard');
-    const cardsTweet = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweet');
-    const cardsTweetExpanded = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweetExpanded');
-    const cardsVanderMaria = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'vanderMaria');
+    const updateCards = (cards: CarouselCard[]) =>
+      cards.map((card) => (card.id === id ? { ...card, ...updates } : card));
+
+    const cardsStandard = updateCards(state.cardsStandard);
+    const cardsTweet = updateCards(state.cardsTweet);
+    const cardsTweetExpanded = updateCards(state.cardsTweetExpanded);
+    const cardsVanderMaria = updateCards(state.cardsVanderMaria);
 
     return {
-      cards: updatedCards,
       cardsStandard,
       cardsTweet,
       cardsTweetExpanded,
-      cardsVanderMaria,  // ISOLADO: Re-filtra também
+      cardsVanderMaria,
+      cards: selectCardsForTemplate(
+        {
+          standard: cardsStandard,
+          tweet: cardsTweet,
+          tweetExpanded: cardsTweetExpanded,
+          vanderMaria: cardsVanderMaria,
+        },
+        state.carouselTemplate
+      ),
     };
   }),
   updateAllCards: (updates) => set((state) => {
-    // 🟡 CRÍTICO: Quando atualiza todos os cards, precisa re-filtrar também
-    const updatedCards = state.cards.map(c => ({ ...c, ...updates }));
-    const cardsStandard = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'standard');
-    const cardsTweet = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweet');
-    const cardsTweetExpanded = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'tweetExpanded');
-    const cardsVanderMaria = updatedCards.filter(c => (c.carouselTemplate || 'standard') === 'vanderMaria');
-
-    return {
-      cards: updatedCards,
-      cardsStandard,
-      cardsTweet,
-      cardsTweetExpanded,
-      cardsVanderMaria,  // ISOLADO: Re-filtra também
-    };
+    const activeCards = state.cards.map((card) => ({ ...card, ...updates }));
+    return patchTemplateBuckets(state, state.carouselTemplate, activeCards);
   }),
   addDoc: (doc) => set((state) => ({
     docs: [...state.docs, doc]
@@ -126,5 +163,13 @@ export const useCarouselStore = create<CarouselState>((set) => ({
   removeDoc: (id) => set((state) => ({
     docs: state.docs.filter(d => d.id !== id)
   })),
-  setDocs: (docs) => set({ docs })
+  setDocs: (docs) => set({ docs }),
+  clearAllCards: () =>
+    set({
+      cards: [],
+      cardsStandard: EMPTY_TEMPLATE_BUCKETS.standard,
+      cardsTweet: EMPTY_TEMPLATE_BUCKETS.tweet,
+      cardsTweetExpanded: EMPTY_TEMPLATE_BUCKETS.tweetExpanded,
+      cardsVanderMaria: EMPTY_TEMPLATE_BUCKETS.vanderMaria,
+    }),
 }));

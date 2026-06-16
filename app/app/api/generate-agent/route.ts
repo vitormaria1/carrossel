@@ -10,10 +10,14 @@ interface GenerateRequest {
   customization?: string;
   totalCards: number;
   expertise?: string;
+  yearsExperience?: number;
+  mainAchievement?: string;
+  productName?: string;
   targetAudience?: string;
   toneOfVoice?: string;
+  objective?: string;
   carouselType?: string;
-  carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded';
+  carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
 }
 
 export async function POST(req: NextRequest) {
@@ -24,8 +28,12 @@ export async function POST(req: NextRequest) {
       customization,
       totalCards,
       expertise,
+      yearsExperience,
+      mainAchievement,
+      productName,
       targetAudience,
       toneOfVoice,
+      objective,
       carouselType,
       carouselTemplate,
     } = body;
@@ -49,8 +57,12 @@ export async function POST(req: NextRequest) {
         customization,
         totalCards,
         expertise,
+        yearsExperience,
+        mainAchievement,
+        productName,
         targetAudience,
         toneOfVoice,
+        objective,
         carouselType,
       });
     } catch (agentError) {

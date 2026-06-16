@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { CarouselCard } from '@/lib/store';
-import { exportAllCardsAsZip } from '@/lib/export';
 
 interface PublishDialogProps {
   cards: CarouselCard[];
@@ -12,20 +11,20 @@ interface PublishDialogProps {
 
 export function PublishDialog({ cards, isOpen, onClose }: PublishDialogProps) {
   const [step, setStep] = useState<'ready' | 'exporting' | 'instructions' | 'success'>('ready');
-  const [selectedFormat, setSelectedFormat] = useState<'zip' | 'individual'>('zip');
+  const [selectedFormat, setSelectedFormat] = useState<'individual' | 'workspace'>('workspace');
 
   const handleExport = async () => {
     setStep('exporting');
     try {
-      if (selectedFormat === 'zip') {
-        await exportCardsAsZip(cards);
-      } else {
-        // Exportar individual
-        const { exportCardAsPNG } = await import('@/lib/export');
-        for (let i = 0; i < cards.length; i++) {
-          await exportCardAsPNG(cards[i], `card-${String(i + 1).padStart(2, '0')}.png`);
-          await new Promise(r => setTimeout(r, 300));
-        }
+      const { exportAsJSON, exportCardAsPNG } = await import('@/lib/export');
+      for (let i = 0; i < cards.length; i++) {
+        await exportCardAsPNG(cards[i], `card-${String(i + 1).padStart(2, '0')}.png`);
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      if (selectedFormat === 'workspace') {
+        exportAsJSON(cards, `carrossel-${Date.now()}.json`);
+        downloadInstructions(cards.length);
       }
       setStep('instructions');
     } catch (error) {
@@ -53,27 +52,25 @@ export function PublishDialog({ cards, isOpen, onClose }: PublishDialogProps) {
             </div>
 
             <p className="text-gray-600 mb-6">
-              Escolha como deseja baixar seus cards. Recomendamos o <strong>ZIP</strong> para ter tudo organizado.
+              Escolha como deseja baixar seus cards. O modo workspace também salva um JSON para reedição posterior.
             </p>
 
             <div className="space-y-3 mb-6">
-              {/* ZIP Option */}
               <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition"
-                onClick={() => setSelectedFormat('zip')}
+                onClick={() => setSelectedFormat('workspace')}
               >
                 <input
                   type="radio"
-                  checked={selectedFormat === 'zip'}
-                  onChange={() => setSelectedFormat('zip')}
+                  checked={selectedFormat === 'workspace'}
+                  onChange={() => setSelectedFormat('workspace')}
                   className="w-4 h-4 text-blue-600"
                 />
                 <div className="ml-4">
-                  <p className="font-semibold text-gray-900">📦 Baixar como ZIP</p>
-                  <p className="text-sm text-gray-500">Todos os {cards.length} cards em 1 arquivo + instruções</p>
+                  <p className="font-semibold text-gray-900">🗂️ Workspace completo</p>
+                  <p className="text-sm text-gray-500">Baixa imagens + JSON + instruções</p>
                 </div>
               </label>
 
-              {/* Individual Option */}
               <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition"
                 onClick={() => setSelectedFormat('individual')}
               >
@@ -84,8 +81,8 @@ export function PublishDialog({ cards, isOpen, onClose }: PublishDialogProps) {
                   className="w-4 h-4 text-blue-600"
                 />
                 <div className="ml-4">
-                  <p className="font-semibold text-gray-900">📸 Baixar cards individuais</p>
-                  <p className="text-sm text-gray-500">Um arquivo PNG por card (mais lento)</p>
+                  <p className="font-semibold text-gray-900">📸 Somente imagens</p>
+                  <p className="text-sm text-gray-500">Um arquivo PNG por card</p>
                 </div>
               </label>
             </div>
@@ -207,84 +204,25 @@ export function PublishDialog({ cards, isOpen, onClose }: PublishDialogProps) {
   );
 }
 
-/**
- * Export cards as ZIP com melhorias
- */
-async function exportCardsAsZip(cards: CarouselCard[]) {
-  const JSZip = (window as any).JSZip;
-  if (!JSZip) {
-    console.error('JSZip not available');
-    return;
-  }
+function downloadInstructions(cardCount: number) {
+  const content = `Seu carrossel está pronto.
 
-  const { exportCardAsPNG, createCardCanvas } = await import('@/lib/export');
-  const zip = new JSZip();
+1. Abra o Instagram.
+2. Crie um post em carrossel.
+3. Selecione os arquivos na ordem: 01, 02, 03...
+4. Use o JSON salvo para reeditar ou reaproveitar a copy depois.
 
-  // Criar pasta com data/timestamp
-  const now = new Date();
-  const timestamp = now.toISOString().split('T')[0];
-  const folder = zip.folder(`carrossel-${timestamp}`);
-
-  if (!folder) throw new Error('Failed to create folder');
-
-  // Adicionar cards
-  for (let i = 0; i < cards.length; i++) {
-    const card = cards[i];
-
-    // Dinamicamente importar para evitar circular dependency
-    const { createCardCanvas: createCanvas } = await import('@/lib/export');
-    const canvas = createCanvas(card);
-
-    await new Promise<void>((resolve) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          folder.file(`${String(i + 1).padStart(2, '0')}-card.png`, blob);
-        }
-        resolve();
-      }, 'image/png');
-    });
-  }
-
-  // Adicionar README com instruções
-  const readme = `# Seu Carrossel está Pronto! 🎉
-
-## Como Usar
-
-1. **Abra o Instagram**
-   - App ou web em instagram.com
-
-2. **Clique em "Criar" → "Carrossel"**
-   - Ou toque no ícone + para novo post
-
-3. **Selecione as imagens na ordem**
-   - 01-card.png, 02-card.png, ... ${String(cards.length).padStart(2, '0')}-card.png
-
-4. **Adicione legenda e hashtags**
-   - Use: #MeuCarrossel #Copy #Instagram
-
-5. **Compartilhe!** 🚀
-
-## Tamanho
-
-✅ Todas as imagens estão em **1080x1920**
-✅ Perfeito para Stories, Reels e Feed do Instagram
-
----
-
-Criado com ❤️ por carrossel.ai
+Total de cards: ${cardCount}
+Formato sugerido: Feed 4:5 ou Story, dependendo do template exportado.
 `;
 
-  folder.file('README.txt', readme);
-
-  // Gerar ZIP
-  const content = await zip.generateAsync({ type: 'blob' });
-  const url = URL.createObjectURL(content);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `carrossel-${timestamp}.zip`;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'README-carrossel.txt';
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
   setTimeout(() => URL.revokeObjectURL(url), 100);
 }

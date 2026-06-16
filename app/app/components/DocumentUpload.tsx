@@ -66,7 +66,10 @@ export function DocumentUpload() {
           <p className="text-sm font-semibold text-gray-900">
             {uploading ? 'Enviando...' : 'Clique ou arraste'}
           </p>
-          <p className="text-xs text-gray-500 mt-1">PDF, TXT, DOC, DOCX</p>
+          <p className="mt-1 text-xs text-gray-500">PDF, TXT, DOC, DOCX</p>
+          <p className="mt-2 text-[11px] text-gray-400">
+            Os documentos entram no briefing e ajudam a IA a escrever com mais contexto.
+          </p>
         </div>
       </div>
 

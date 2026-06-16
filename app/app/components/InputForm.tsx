@@ -20,7 +20,17 @@ const CAROUSEL_TYPES = [
 ];
 
 export function InputForm({ onGenerate, isLoading }: InputFormProps) {
-  const { idea, setIdea, prompt, setPrompt, totalCards, setTotalCards, carouselType, setCarouselType } = useCarouselStore();
+  const {
+    idea,
+    setIdea,
+    prompt,
+    setPrompt,
+    totalCards,
+    setTotalCards,
+    carouselType,
+    setCarouselType,
+    carouselTemplate,
+  } = useCarouselStore();
   const [error, setError] = useState<string>('');
 
   // 🟡 Mostrar skeleton enquanto gera
@@ -41,7 +51,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
       setError(`A ideia precisa ter pelo menos ${MIN_IDEA_LENGTH} caracteres`);
       return false;
     }
-    if (totalCards < 3 || totalCards > 20) {
+    if (carouselTemplate !== 'vanderMaria' && (totalCards < 3 || totalCards > 20)) {
       setError('Selecione entre 3 e 20 cards');
       return false;
     }
@@ -63,6 +73,8 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
   };
 
   const ideaPercentage = Math.round((idea.length / MAX_IDEA_LENGTH) * 100);
+  const cardsLockedByTemplate = carouselTemplate === 'vanderMaria';
+  const suggestedCardCount = cardsLockedByTemplate ? 5 : totalCards;
 
   return (
     <div className="space-y-4">
@@ -145,23 +157,33 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <label className="block text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">
-          📊 Quantos cards?
-        </label>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <label className="block text-xs font-bold uppercase tracking-wide text-gray-700">
+            📊 Quantos cards?
+          </label>
+          {cardsLockedByTemplate && (
+            <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
+              Vander Maria usa 5 slides fixos
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-4">
           <input
             type="range"
-            min={1}
+            min={3}
             max={20}
-            value={totalCards}
+            value={suggestedCardCount}
             onChange={(e) => setTotalCards(parseInt(e.target.value))}
-            className="flex-1 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            disabled={cardsLockedByTemplate}
+            className="flex-1 h-2 cursor-pointer appearance-none rounded-lg bg-gray-300 accent-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full font-bold text-sm min-w-12 text-center">
-            {totalCards}
+            {suggestedCardCount}
           </span>
         </div>
-        <p className="text-xs text-gray-500 mt-2">Escolha entre 1 e 20 cards</p>
+        <p className="mt-2 text-xs text-gray-500">
+          {cardsLockedByTemplate ? 'Esse template gera sempre 5 slides.' : 'Escolha entre 3 e 20 cards.'}
+        </p>
       </div>
 
       <button
