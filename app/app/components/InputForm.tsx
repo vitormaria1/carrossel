@@ -25,6 +25,8 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
     setIdea,
     prompt,
     setPrompt,
+    postCaption,
+    setPostCaption,
     totalCards,
     setTotalCards,
     carouselType,
@@ -40,6 +42,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
 
   const MAX_IDEA_LENGTH = 2000;
   const MAX_PROMPT_LENGTH = 500;
+  const MAX_CAPTION_LENGTH = 2200;
   const MIN_IDEA_LENGTH = 20;
 
   const validateInputs = (): boolean => {
@@ -154,6 +157,24 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
           className="w-full p-4 border border-gray-300 rounded-lg resize-none h-16 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white transition"
         />
         <p className="text-xs text-gray-500 mt-1">{prompt.length}/{MAX_PROMPT_LENGTH} caracteres</p>
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
+          📝 Legenda do post
+        </label>
+        <textarea
+          value={postCaption}
+          onChange={(e) => {
+            if (e.target.value.length <= MAX_CAPTION_LENGTH) {
+              setPostCaption(e.target.value);
+            }
+          }}
+          placeholder="Escreva aqui a legenda que vai acompanhar o carrossel no Instagram..."
+          maxLength={MAX_CAPTION_LENGTH}
+          className="w-full p-4 border border-gray-300 rounded-lg resize-none h-28 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white transition"
+        />
+        <p className="text-xs text-gray-500 mt-1">{postCaption.length}/{MAX_CAPTION_LENGTH} caracteres</p>
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">

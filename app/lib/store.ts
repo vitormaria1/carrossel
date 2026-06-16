@@ -31,6 +31,7 @@ type TemplateBuckets = Record<CarouselTemplate, CarouselCard[]>;
 export interface CarouselState {
   idea: string;
   prompt: string;
+  postCaption: string;
   cards: CarouselCard[];
   totalCards: number;
   isGenerating: boolean;
@@ -44,6 +45,7 @@ export interface CarouselState {
 
   setIdea: (idea: string) => void;
   setPrompt: (prompt: string) => void;
+  setPostCaption: (caption: string) => void;
   setCards: (cards: CarouselCard[]) => void;
   setTotalCards: (total: number) => void;
   setIsGenerating: (generating: boolean) => void;
@@ -102,6 +104,7 @@ export const useCarouselStore = create<CarouselState>()(
     (set) => ({
       idea: '',
       prompt: '',
+      postCaption: '',
       cards: [],
       cardsStandard: [],
       cardsTweet: [],
@@ -115,6 +118,7 @@ export const useCarouselStore = create<CarouselState>()(
 
       setIdea: (idea) => set({ idea }),
       setPrompt: (prompt) => set({ prompt }),
+      setPostCaption: (postCaption) => set({ postCaption }),
       setCards: (cards) => set((state) => patchTemplateBuckets(state, detectTemplate(cards), cards)),
       setTotalCards: (total) => set({ totalCards: total }),
       setIsGenerating: (generating) => set({ isGenerating: generating }),
@@ -182,6 +186,7 @@ export const useCarouselStore = create<CarouselState>()(
       partialize: (state) => ({
         idea: state.idea,
         prompt: state.prompt,
+        postCaption: state.postCaption,
         cards: state.cards,
         totalCards: state.totalCards,
         carouselTemplate: state.carouselTemplate,

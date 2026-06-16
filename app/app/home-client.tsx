@@ -19,6 +19,7 @@ export default function HomeClient() {
     totalCards,
     setCards,
     setIsGenerating,
+    setPostCaption,
     carouselType,
     carouselTemplate,
     setTotalCards,
@@ -71,6 +72,7 @@ export default function HomeClient() {
         }));
 
         setCards(formattedCards);
+        setPostCaption(formattedCards[0]?.caption || '');
         console.log('✅ Carrossel Vander Maria gerado! 5 slides prontos.');
         return;
       }
@@ -123,6 +125,7 @@ export default function HomeClient() {
         });
 
         setCards(cards);
+        setPostCaption(data.caption || cards[0]?.caption || '');
         console.log(`✅ Cards salvos! Template: ${carouselTemplate}`);
       }
     } catch (error) {

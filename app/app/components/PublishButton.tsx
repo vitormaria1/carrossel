@@ -16,6 +16,7 @@ export function PublishButton() {
   const {
     carouselTemplate,
     cards,
+    postCaption,
   } = useCarouselStore();
 
   const handlePublish = async () => {
@@ -49,7 +50,7 @@ export function PublishButton() {
     setProgress({ current: 0, total: cards.length });
 
     try {
-      const caption = cards[0]?.caption || 'Confira este carrossel! 🎨';
+      const caption = postCaption.trim() || cards[0]?.caption || 'Confira este carrossel! 🎨';
 
       // Debug: verificar match de template
       const firstCard = cards[0] as any;
