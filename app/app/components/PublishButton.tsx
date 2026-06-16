@@ -19,18 +19,6 @@ export function PublishButton() {
     clearAllCards,
   } = useCarouselStore();
 
-  function base64ToBlob(base64: string, mimeType = 'image/jpeg') {
-    const rawBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
-    const byteCharacters = atob(rawBase64);
-    const byteNumbers = new Array(byteCharacters.length);
-
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-
-    return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
-  }
-
   const handlePublish = async () => {
     if (!cards || cards.length === 0) {
       setStatus('error');
@@ -100,25 +88,44 @@ export function PublishButton() {
 
       console.log(`✅ ${base64Images.length} base64s prontos para publicação`);
 
-      // Enviar imagens como multipart/form-data para reduzir o payload do request
-      console.log('📤 Enviando para o servidor...');
-      const formData = new FormData();
-      formData.append('slides', JSON.stringify(cards));
-      formData.append('caption', caption);
-      formData.append('carouselTemplate', template);
+      console.log('📤 Enviando imagens uma a uma para gerar URLs públicas...');
+      const imageUrls: string[] = [];
 
-      base64Images.forEach((base64, index) => {
-        const blob = base64ToBlob(base64);
-        formData.append(
-          'images',
-          blob,
-          `card-${String(index + 1).padStart(2, '0')}.jpg`
-        );
-      });
+      for (let i = 0; i < base64Images.length; i++) {
+        const uploadResponse = await fetch('/api/publish-instagram/upload-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base64: base64Images[i],
+            cardIndex: i,
+            cardHeadline: (cards[i] as any)?.headline || 'Card',
+          }),
+          signal: abortControllerRef.current?.signal,
+        });
 
+        const uploadContentType = uploadResponse.headers.get('content-type') || '';
+        const uploadData = uploadContentType.includes('application/json')
+          ? await uploadResponse.json()
+          : { error: await uploadResponse.text() };
+
+        if (!uploadResponse.ok) {
+          throw new Error(String(uploadData.error || 'Falha ao enviar imagem'));
+        }
+
+        imageUrls.push(uploadData.url);
+        setProgress({ current: i + 1, total: base64Images.length });
+      }
+
+      console.log('📤 Enviando payload final enxuto para o servidor...');
       const response = await fetch('/api/publish-instagram', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slides: cards,
+          caption,
+          carouselTemplate: template,
+          imageUrls,
+        }),
         signal: abortControllerRef.current?.signal, // 🔴 Usar AbortSignal
       });
 

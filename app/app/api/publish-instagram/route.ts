@@ -42,6 +42,7 @@ interface PublishRequest {
   slides: CarouselSlide[];
   caption: string;
   carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
+  imageUrls?: string[];
   base64Images?: string[];
 }
 
@@ -289,6 +290,11 @@ export async function POST(request: NextRequest) {
     }
 
     let base64Images = body.base64Images || [];
+    const imageUrls = body.imageUrls || [];
+
+    if (imageUrls.length > 0 && imageUrls.length === body.slides.length) {
+      base64Images = [];
+    }
 
     if (uploadedImages.length > 0) {
       base64Images = await Promise.all(
@@ -299,7 +305,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!base64Images || base64Images.length !== body.slides.length) {
+    if (imageUrls.length === 0 && (!base64Images || base64Images.length !== body.slides.length)) {
       return NextResponse.json(
         { error: 'Imagens não fornecidas ou quantidade incorreta' },
         { status: 400 }
@@ -309,7 +315,7 @@ export async function POST(request: NextRequest) {
     // Extrair template (padrão: 'standard')
     const template = body.carouselTemplate || 'standard';
     console.log(`📐 Template: ${template}`);
-    console.log(`✅ Recebido: ${base64Images.length} imagens do browser`);
+    console.log(`✅ Recebido: ${imageUrls.length > 0 ? imageUrls.length : base64Images.length} imagens do browser`);
 
     // Obter Business Account ID dinâmicamente
     const businessAccountId = await getBusinessAccountId();
@@ -320,23 +326,30 @@ export async function POST(request: NextRequest) {
     const childrenIds: string[] = [];
     const publicImageUrls: string[] = [];
 
-    console.log('🖼️ Enviando base64s para webhook n8n...');
+    console.log('🖼️ Enviando imagens para webhook n8n...');
 
     for (let i = 0; i < body.slides.length; i++) {
       const slide = body.slides[i] as EnrichedSlide;
-      const base64 = base64Images[i];
 
       console.log(`Processando slide ${i + 1}/${body.slides.length}: "${slide.headline?.substring(0, 50) || 'Sem headline'}..."`);
 
       try {
-        console.log(`🌐 Slide ${i + 1}: enviando base64 para webhook n8n (${base64.length} chars)...`);
+        let publicImageUrl: string;
 
-        // Send base64 to n8n webhook and get public URL
-        const publicImageUrl = await sendImageToN8nWebhook(
-          base64,
-          i,
-          slide.headline || 'Card'
-        );
+        if (imageUrls.length > 0) {
+          publicImageUrl = imageUrls[i];
+          console.log(`🌐 Slide ${i + 1}: usando URL pública enviada pelo cliente`);
+        } else {
+          const base64 = base64Images[i];
+          console.log(`🌐 Slide ${i + 1}: enviando base64 para webhook n8n (${base64.length} chars)...`);
+
+          // Send base64 to n8n webhook and get public URL
+          publicImageUrl = await sendImageToN8nWebhook(
+            base64,
+            i,
+            slide.headline || 'Card'
+          );
+        }
 
         publicImageUrls.push(publicImageUrl);
         console.log(`✅ Slide ${i + 1} processado pelo n8n: ${publicImageUrl}`);
