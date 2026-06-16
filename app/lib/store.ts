@@ -32,6 +32,8 @@ export interface CarouselState {
   idea: string;
   prompt: string;
   postCaption: string;
+  publishMode: 'now' | 'scheduled';
+  scheduledFor: string;
   cards: CarouselCard[];
   totalCards: number;
   isGenerating: boolean;
@@ -46,6 +48,8 @@ export interface CarouselState {
   setIdea: (idea: string) => void;
   setPrompt: (prompt: string) => void;
   setPostCaption: (caption: string) => void;
+  setPublishMode: (mode: 'now' | 'scheduled') => void;
+  setScheduledFor: (scheduledFor: string) => void;
   setCards: (cards: CarouselCard[]) => void;
   setTotalCards: (total: number) => void;
   setIsGenerating: (generating: boolean) => void;
@@ -105,6 +109,8 @@ export const useCarouselStore = create<CarouselState>()(
       idea: '',
       prompt: '',
       postCaption: '',
+      publishMode: 'now',
+      scheduledFor: '',
       cards: [],
       cardsStandard: [],
       cardsTweet: [],
@@ -119,6 +125,8 @@ export const useCarouselStore = create<CarouselState>()(
       setIdea: (idea) => set({ idea }),
       setPrompt: (prompt) => set({ prompt }),
       setPostCaption: (postCaption) => set({ postCaption }),
+      setPublishMode: (publishMode) => set({ publishMode }),
+      setScheduledFor: (scheduledFor) => set({ scheduledFor }),
       setCards: (cards) => set((state) => patchTemplateBuckets(state, detectTemplate(cards), cards)),
       setTotalCards: (total) => set({ totalCards: total }),
       setIsGenerating: (generating) => set({ isGenerating: generating }),
@@ -187,6 +195,8 @@ export const useCarouselStore = create<CarouselState>()(
         idea: state.idea,
         prompt: state.prompt,
         postCaption: state.postCaption,
+        publishMode: state.publishMode,
+        scheduledFor: state.scheduledFor,
         cards: state.cards,
         totalCards: state.totalCards,
         carouselTemplate: state.carouselTemplate,

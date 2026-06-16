@@ -5,6 +5,15 @@ import { useCarouselStore } from '@/lib/store';
 import { generateCardBase64 } from '@/lib/export'; // Fallback para regeneração se necessário
 import { renderVanderMariaCardToBase64 } from '@/lib/vander-maria';
 
+function getDefaultScheduledFor() {
+  const date = new Date();
+  date.setHours(date.getHours() + 1);
+  date.setMinutes(0, 0, 0);
+
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function PublishButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'publishing' | 'success' | 'error'>('idle');
@@ -17,6 +26,10 @@ export function PublishButton() {
     carouselTemplate,
     cards,
     postCaption,
+    publishMode,
+    scheduledFor,
+    setPublishMode,
+    setScheduledFor,
   } = useCarouselStore();
 
   const handlePublish = async () => {
@@ -116,16 +129,24 @@ export function PublishButton() {
         setProgress({ current: i + 1, total: base64Images.length });
       }
 
-      console.log('📤 Enviando payload final enxuto para o servidor...');
-      const response = await fetch('/api/publish-instagram', {
+      const payload = {
+        slides: cards,
+        caption,
+        carouselTemplate: template,
+        imageUrls,
+      };
+
+      const endpoint = publishMode === 'scheduled' ? '/api/schedule-publish' : '/api/publish-instagram';
+
+      console.log(`📤 Enviando payload final para ${endpoint}...`);
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slides: cards,
-          caption,
-          carouselTemplate: template,
-          imageUrls,
-        }),
+        body: JSON.stringify(
+          publishMode === 'scheduled'
+            ? { ...payload, scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : '' }
+            : payload
+        ),
         signal: abortControllerRef.current?.signal, // 🔴 Usar AbortSignal
       });
 
@@ -143,13 +164,25 @@ export function PublishButton() {
       }
 
       setStatus('success');
-      setPostUrl(data.url);
+      setPostUrl(
+        publishMode === 'scheduled'
+          ? ''
+          : data.url
+      );
 
-      // Mantém o último carrossel gerado até que outro seja criado.
-      setTimeout(() => {
-        setStatus('idle');
-        console.log('✅ Carrossel mantido em memória para reuso.');
-      }, 5000);
+      if (publishMode === 'scheduled') {
+        console.log('🗓️ Publicação agendada com sucesso.');
+        setTimeout(() => {
+          setStatus('idle');
+          console.log('✅ Agendamento registrado. Pronto para novo carrossel.');
+        }, 5000);
+      } else {
+        // Mantém o último carrossel gerado até que outro seja criado.
+        setTimeout(() => {
+          setStatus('idle');
+          console.log('✅ Carrossel mantido em memória para reuso.');
+        }, 5000);
+      }
     } catch (error) {
       setStatus('error');
       setErrorMessage(
@@ -163,15 +196,60 @@ export function PublishButton() {
 
   return (
     <div className="space-y-3">
+      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 space-y-3">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setPublishMode('now')}
+            className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+              publishMode === 'now' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-200'
+            }`}
+          >
+            Publicar agora
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPublishMode('scheduled');
+              if (!scheduledFor) {
+                setScheduledFor(getDefaultScheduledFor());
+              }
+            }}
+            className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+              publishMode === 'scheduled' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-200'
+            }`}
+          >
+            Agendar
+          </button>
+        </div>
+
+        {publishMode === 'scheduled' && (
+          <div>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-700">
+              Data e hora
+            </label>
+            <input
+              type="datetime-local"
+              value={scheduledFor}
+              onChange={(e) => setScheduledFor(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              A publicação será processada pelo cron da Vercel no horário definido.
+            </p>
+          </div>
+        )}
+      </div>
+
       <button
         onClick={handlePublish}
-        disabled={isLoading || !cards || cards.length === 0}
+        disabled={isLoading || !cards || cards.length === 0 || (publishMode === 'scheduled' && !scheduledFor)}
         className={`w-full px-6 py-3 rounded-lg font-semibold transition-all ${
           isLoading
             ? 'bg-gray-400 cursor-not-allowed text-white'
             : status === 'success'
             ? 'bg-green-500 text-white'
-            : status === 'error'
+          : status === 'error'
             ? 'bg-red-500 text-white'
             : 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white'
         }`}
@@ -181,11 +259,11 @@ export function PublishButton() {
             <span className="animate-spin">⏳</span>
             {progress.total > 0
               ? `Processando ${progress.current}/${progress.total}...`
-              : 'Publicando...'}
+              : publishMode === 'scheduled' ? 'Agendando...' : 'Publicando...'}
           </span>
         ) : status === 'success' ? (
           <span className="flex items-center justify-center gap-2">
-            ✅ Publicado com sucesso!
+            {publishMode === 'scheduled' ? '✅ Agendado com sucesso!' : '✅ Publicado com sucesso!'}
           </span>
         ) : status === 'error' ? (
           <span className="flex items-center justify-center gap-2">
@@ -193,12 +271,12 @@ export function PublishButton() {
           </span>
         ) : (
           <span className="flex items-center justify-center gap-2">
-            📱 Publicar no Instagram
+            {publishMode === 'scheduled' ? '🗓️ Agendar publicação' : '📱 Publicar no Instagram'}
           </span>
         )}
       </button>
 
-      {status === 'success' && postUrl && (
+      {status === 'success' && postUrl && publishMode === 'now' && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-green-800 font-semibold mb-2">Carrossel publicado! 🎉</p>
           <a
@@ -209,6 +287,15 @@ export function PublishButton() {
           >
             Ver no Instagram →
           </a>
+        </div>
+      )}
+
+      {status === 'success' && publishMode === 'scheduled' && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-blue-800 font-semibold mb-1">Carrossel agendado.</p>
+          <p className="text-sm text-blue-700">
+            O cron da Vercel vai publicar no horário definido.
+          </p>
         </div>
       )}
 
