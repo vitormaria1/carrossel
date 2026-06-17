@@ -8,8 +8,20 @@ import { publishCarouselWithUrls } from '@/lib/instagram-publish';
 
 export async function GET(request: NextRequest) {
   try {
+    const expectedSecret = process.env.CRON_SECRET;
+    if (!expectedSecret) {
+      return NextResponse.json(
+        { error: 'CRON_SECRET não configurado no deploy da Vercel' },
+        { status: 500 }
+      );
+    }
+
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Authorization ausente' }, { status: 401 });
+    }
+
+    if (authHeader !== `Bearer ${expectedSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
