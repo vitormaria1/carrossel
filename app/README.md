@@ -34,7 +34,10 @@ npm run build
 - A publicação depende de `INSTAGRAM_ACCESS_TOKEN` e do webhook configurado em `n8n`.
 - O agendamento salva os posts no Vercel Blob usando `BLOB_READ_WRITE_TOKEN`.
 - O disparo do agendamento não depende da Vercel Cron: o repositório já inclui um workflow do GitHub Actions em `.github/workflows/process-scheduled-posts.yml`.
-- Para várias contas do Instagram, use `INSTAGRAM_ACCOUNTS_JSON` com uma lista de objetos no formato `{ "id", "label", "accessToken", "businessAccountId?" }`.
+- Para várias contas do Instagram, você pode usar variáveis separadas:
+  - `INSTAGRAM_ACCOUNT_1_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_1_LABEL`, `INSTAGRAM_ACCOUNT_1_BUSINESS_ACCOUNT_ID`
+  - `INSTAGRAM_ACCOUNT_2_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_2_LABEL`, `INSTAGRAM_ACCOUNT_2_BUSINESS_ACCOUNT_ID`
+  - Se preferir, também funciona com `INSTAGRAM_ACCOUNTS_JSON`.
 
 ## Configuração necessária
 
@@ -42,19 +45,11 @@ npm run build
 2. Configure `INSTAGRAM_ACCESS_TOKEN` e `CRON_SECRET` nas variáveis do projeto na Vercel.
 3. No GitHub, crie os secrets `APP_URL` e `CRON_SECRET` para o workflow agendado.
 4. Se quiser testar manualmente o processador, rode o workflow `Process scheduled posts` na aba Actions.
-5. Se quiser publicar em mais de uma conta, adicione `INSTAGRAM_ACCOUNTS_JSON` na Vercel com algo assim:
+5. Se quiser publicar em mais de uma conta, você pode criar variáveis separadas na Vercel, por exemplo:
 
-```json
-[
-  {
-    "id": "conta-principal",
-    "label": "Conta principal",
-    "accessToken": "TOKEN_DA_CONTA_1"
-  },
-  {
-    "id": "conta-secundaria",
-    "label": "Conta secundária",
-    "accessToken": "TOKEN_DA_CONTA_2"
-  }
-]
+```txt
+INSTAGRAM_ACCOUNT_1_LABEL=Conta principal
+INSTAGRAM_ACCOUNT_1_ACCESS_TOKEN=TOKEN_DA_CONTA_1
+INSTAGRAM_ACCOUNT_2_LABEL=Conta secundária
+INSTAGRAM_ACCOUNT_2_ACCESS_TOKEN=TOKEN_DA_CONTA_2
 ```

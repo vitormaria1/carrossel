@@ -34,10 +34,35 @@ function parseAccountsJson(raw: string | undefined): InstagramAccountConfig[] {
   }
 }
 
+function readIndexedAccount(index: number): InstagramAccountConfig | null {
+  const suffix = String(index);
+  const accessToken = process.env[`INSTAGRAM_ACCOUNT_${suffix}_ACCESS_TOKEN`]?.trim();
+
+  if (!accessToken) {
+    return null;
+  }
+
+  return {
+    id: process.env[`INSTAGRAM_ACCOUNT_${suffix}_ID`]?.trim() || `conta-${suffix}`,
+    label: process.env[`INSTAGRAM_ACCOUNT_${suffix}_LABEL`]?.trim() || `Conta ${suffix}`,
+    accessToken,
+    businessAccountId:
+      process.env[`INSTAGRAM_ACCOUNT_${suffix}_BUSINESS_ACCOUNT_ID`]?.trim() || undefined,
+  };
+}
+
 export function getInstagramAccounts(): InstagramAccountConfig[] {
   const configuredAccounts = parseAccountsJson(process.env.INSTAGRAM_ACCOUNTS_JSON);
   if (configuredAccounts.length > 0) {
     return configuredAccounts;
+  }
+
+  const indexedAccounts = [readIndexedAccount(1), readIndexedAccount(2)].filter(
+    (account): account is InstagramAccountConfig => Boolean(account)
+  );
+
+  if (indexedAccounts.length > 0) {
+    return indexedAccounts;
   }
 
   const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN?.trim();
@@ -67,7 +92,7 @@ export function resolveInstagramAccount(accountId?: string): InstagramAccountCon
 
   if (!accounts.length) {
     throw new Error(
-      'Nenhuma conta do Instagram configurada. Defina INSTAGRAM_ACCOUNTS_JSON ou INSTAGRAM_ACCESS_TOKEN.'
+      'Nenhuma conta do Instagram configurada. Defina INSTAGRAM_ACCOUNTS_JSON, INSTAGRAM_ACCOUNT_1_ACCESS_TOKEN, INSTAGRAM_ACCOUNT_2_ACCESS_TOKEN ou INSTAGRAM_ACCESS_TOKEN.'
     );
   }
 
