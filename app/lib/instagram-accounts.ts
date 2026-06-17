@@ -28,27 +28,10 @@ function parseAccountsJson(raw: string | undefined): InstagramAccountConfig[] {
         accessToken: String(entry?.accessToken || '').trim(),
         businessAccountId: String(entry?.businessAccountId || '').trim() || undefined,
       }))
-      .filter((entry) => entry.id && entry.label && entry.accessToken);
+      .filter((entry) => entry.id && entry.accessToken)
   } catch {
     return [];
   }
-}
-
-function readIndexedAccount(index: number): InstagramAccountConfig | null {
-  const suffix = String(index);
-  const accessToken = process.env[`INSTAGRAM_ACCOUNT_${suffix}_ACCESS_TOKEN`]?.trim();
-
-  if (!accessToken) {
-    return null;
-  }
-
-  return {
-    id: process.env[`INSTAGRAM_ACCOUNT_${suffix}_ID`]?.trim() || `conta-${suffix}`,
-    label: process.env[`INSTAGRAM_ACCOUNT_${suffix}_LABEL`]?.trim() || `Conta ${suffix}`,
-    accessToken,
-    businessAccountId:
-      process.env[`INSTAGRAM_ACCOUNT_${suffix}_BUSINESS_ACCOUNT_ID`]?.trim() || undefined,
-  };
 }
 
 export function getInstagramAccounts(): InstagramAccountConfig[] {
@@ -57,9 +40,30 @@ export function getInstagramAccounts(): InstagramAccountConfig[] {
     return configuredAccounts;
   }
 
-  const indexedAccounts = [readIndexedAccount(1), readIndexedAccount(2)].filter(
-    (account): account is InstagramAccountConfig => Boolean(account)
-  );
+  const account1AccessToken = process.env.INSTAGRAM_ACCESS_TOKEN?.trim();
+  const account2AccessToken = process.env.INSTAGRAM_ACCESS_TOKEN2?.trim();
+  const account1BusinessAccountId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim();
+  const account2BusinessAccountId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID2?.trim();
+
+  const indexedAccounts: InstagramAccountConfig[] = [];
+
+  if (account1AccessToken) {
+    indexedAccounts.push({
+      id: 'conta-1',
+      label: process.env.INSTAGRAM_ACCOUNT_1_LABEL?.trim() || 'Conta 1',
+      accessToken: account1AccessToken,
+      businessAccountId: account1BusinessAccountId || undefined,
+    });
+  }
+
+  if (account2AccessToken) {
+    indexedAccounts.push({
+      id: 'conta-2',
+      label: process.env.INSTAGRAM_ACCOUNT_2_LABEL?.trim() || 'Conta 2',
+      accessToken: account2AccessToken,
+      businessAccountId: account2BusinessAccountId || undefined,
+    });
+  }
 
   if (indexedAccounts.length > 0) {
     return indexedAccounts;
@@ -71,7 +75,7 @@ export function getInstagramAccounts(): InstagramAccountConfig[] {
   return [
     {
       id: DEFAULT_ACCOUNT_ID,
-      label: process.env.INSTAGRAM_ACCOUNT_LABEL?.trim() || 'Conta principal',
+      label: process.env.INSTAGRAM_ACCOUNT_LABEL?.trim() || 'Conta 1',
       accessToken,
       businessAccountId: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim() || undefined,
     },
@@ -92,7 +96,7 @@ export function resolveInstagramAccount(accountId?: string): InstagramAccountCon
 
   if (!accounts.length) {
     throw new Error(
-      'Nenhuma conta do Instagram configurada. Defina INSTAGRAM_ACCOUNTS_JSON, INSTAGRAM_ACCOUNT_1_ACCESS_TOKEN, INSTAGRAM_ACCOUNT_2_ACCESS_TOKEN ou INSTAGRAM_ACCESS_TOKEN.'
+      'Nenhuma conta do Instagram configurada. Defina INSTAGRAM_ACCOUNTS_JSON, INSTAGRAM_ACCESS_TOKEN2 ou INSTAGRAM_ACCESS_TOKEN.'
     );
   }
 
