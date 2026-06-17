@@ -2,7 +2,7 @@ name: Process scheduled posts
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '* * * * *'
   workflow_dispatch:
 
 jobs:

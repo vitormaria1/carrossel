@@ -131,7 +131,7 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
 
       {/* Tweet Text */}
       <div
-        className="px-4 py-3 flex-1 relative group"
+        className="px-4 py-3 relative group"
         onMouseEnter={() => setTextHover(true)}
         onMouseLeave={() => setTextHover(false)}
       >
