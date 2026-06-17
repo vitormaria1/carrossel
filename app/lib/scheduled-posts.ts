@@ -37,6 +37,14 @@ function scheduleKey(id: string) {
   return `${SCHEDULED_POSTS_PREFIX}/${id}.json`;
 }
 
+export function assertBlobConfigured() {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error(
+      'Vercel Blob não configurado. Adicione a variável BLOB_READ_WRITE_TOKEN nas Environment Variables do projeto.'
+    );
+  }
+}
+
 export function createScheduledPostId() {
   return `schedule_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
 }
@@ -46,6 +54,7 @@ export function isDueScheduledPost(post: ScheduledPost, now = new Date()) {
 }
 
 export async function saveScheduledPost(post: ScheduledPost) {
+  assertBlobConfigured();
   await put(scheduleKey(post.id), JSON.stringify(post), {
     access: 'public',
     contentType: 'application/json',
@@ -53,6 +62,7 @@ export async function saveScheduledPost(post: ScheduledPost) {
 }
 
 export async function loadScheduledPost(id: string): Promise<ScheduledPost | null> {
+  assertBlobConfigured();
   const result = await list({ prefix: `${SCHEDULED_POSTS_PREFIX}/` });
   const blob = result.blobs.find((entry) => entry.pathname === scheduleKey(id));
 
@@ -70,6 +80,7 @@ export async function updateScheduledPost(post: ScheduledPost) {
 }
 
 export async function deleteScheduledPost(id: string) {
+  assertBlobConfigured();
   const result = await list({ prefix: `${SCHEDULED_POSTS_PREFIX}/` });
   const blob = result.blobs.find((entry) => entry.pathname === scheduleKey(id));
   if (blob) {
@@ -78,6 +89,7 @@ export async function deleteScheduledPost(id: string) {
 }
 
 export async function listScheduledPosts() {
+  assertBlobConfigured();
   const result = await list({ prefix: `${SCHEDULED_POSTS_PREFIX}/` });
   const posts = await Promise.all(
     result.blobs.map(async (blob) => {

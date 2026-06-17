@@ -235,7 +235,7 @@ export function PublishButton() {
               className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
             <p className="mt-1 text-xs text-gray-500">
-              A publicação será processada pelo cron da Vercel no horário definido.
+              O horário fica salvo no Blob. Depois, um job externo como GitHub Actions chama a API e publica no momento escolhido.
             </p>
           </div>
         )}
@@ -294,7 +294,7 @@ export function PublishButton() {
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-blue-800 font-semibold mb-1">Carrossel agendado.</p>
           <p className="text-sm text-blue-700">
-            O cron da Vercel vai publicar no horário definido.
+            O agendamento foi salvo. O disparo pode ser feito por GitHub Actions ou outro cron externo.
           </p>
         </div>
       )}
@@ -302,6 +302,13 @@ export function PublishButton() {
       {status === 'error' && errorMessage && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-800 font-semibold text-sm">{errorMessage}</p>
+          {errorMessage.includes('BLOB_READ_WRITE_TOKEN') && (
+            <p className="mt-2 text-sm text-red-700">
+              Vá em Vercel &gt; seu projeto &gt; Settings &gt; Environment Variables e crie
+              <code className="mx-1 rounded bg-red-100 px-1 py-0.5">BLOB_READ_WRITE_TOKEN</code>.
+              O painel do Blob não mostra esse valor para copiar; ele fica no projeto como variável de ambiente.
+            </p>
+          )}
         </div>
       )}
 
