@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
           caption: post.caption,
           imageUrls: post.imageUrls,
           carouselTemplate: post.carouselTemplate,
+          instagramAccountId: post.instagramAccountId,
         });
 
         post.status = 'published';

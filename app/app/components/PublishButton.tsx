@@ -1,9 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCarouselStore } from '@/lib/store';
 import { generateCardBase64 } from '@/lib/export'; // Fallback para regeneração se necessário
 import { renderVanderMariaCardToBase64 } from '@/lib/vander-maria';
+
+interface InstagramAccountSummary {
+  id: string;
+  label: string;
+  isDefault: boolean;
+}
 
 function getDefaultScheduledFor() {
   const date = new Date();
@@ -20,6 +26,8 @@ export function PublishButton() {
   const [errorMessage, setErrorMessage] = useState('');
   const [postUrl, setPostUrl] = useState('');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccountSummary[]>([]);
+  const [accountsError, setAccountsError] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const {
@@ -28,9 +36,44 @@ export function PublishButton() {
     postCaption,
     publishMode,
     scheduledFor,
+    instagramAccountId,
     setPublishMode,
     setScheduledFor,
+    setInstagramAccountId,
   } = useCarouselStore();
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAccounts = async () => {
+      try {
+        const response = await fetch('/api/instagram-accounts');
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Falha ao carregar contas');
+        }
+
+        if (!active) return;
+
+        const accounts = Array.isArray(data.accounts) ? data.accounts : [];
+        setInstagramAccounts(accounts);
+
+        if (!instagramAccountId && accounts[0]?.id) {
+          setInstagramAccountId(accounts[0].id);
+        }
+      } catch (error) {
+        if (!active) return;
+        setAccountsError(error instanceof Error ? error.message : 'Falha ao carregar contas');
+      }
+    };
+
+    loadAccounts();
+
+    return () => {
+      active = false;
+    };
+  }, [setInstagramAccountId]);
 
   const handlePublish = async () => {
     if (!cards || cards.length === 0) {
@@ -130,6 +173,7 @@ export function PublishButton() {
       }
 
       const payload = {
+        instagramAccountId: instagramAccountId || instagramAccounts[0]?.id || 'default',
         slides: cards,
         caption,
         carouselTemplate: template,
@@ -210,11 +254,11 @@ export function PublishButton() {
           <button
             type="button"
             onClick={() => {
-              setPublishMode('scheduled');
-              if (!scheduledFor) {
-                setScheduledFor(getDefaultScheduledFor());
-              }
-            }}
+                setPublishMode('scheduled');
+                if (!scheduledFor) {
+                  setScheduledFor(getDefaultScheduledFor());
+                }
+              }}
             className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition ${
               publishMode === 'scheduled' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-200'
             }`}
@@ -239,6 +283,39 @@ export function PublishButton() {
             </p>
           </div>
         )}
+
+        <div>
+          <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-700">
+            Conta do Instagram
+          </label>
+          <select
+            value={instagramAccountId || instagramAccounts[0]?.id || ''}
+            onChange={(e) => setInstagramAccountId(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            disabled={instagramAccounts.length === 0}
+          >
+            {instagramAccounts.length === 0 ? (
+              <option value="">Carregando contas...</option>
+            ) : (
+              instagramAccounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.label}
+                </option>
+              ))
+            )}
+          </select>
+          {accountsError ? (
+            <p className="mt-1 text-xs text-red-600">{accountsError}</p>
+          ) : instagramAccounts.length > 1 ? (
+            <p className="mt-1 text-xs text-gray-500">
+              Escolha qual conta será usada para publicar ou agendar.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-gray-500">
+              Se você adicionar mais contas no ambiente, elas vão aparecer aqui.
+            </p>
+          )}
+        </div>
       </div>
 
       <button
@@ -294,7 +371,7 @@ export function PublishButton() {
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-blue-800 font-semibold mb-1">Carrossel agendado.</p>
           <p className="text-sm text-blue-700">
-            O agendamento foi salvo. O disparo pode ser feito por GitHub Actions ou outro cron externo.
+            O agendamento foi salvo para {instagramAccounts.find((account) => account.id === (instagramAccountId || instagramAccounts[0]?.id))?.label || 'a conta selecionada'}.
           </p>
         </div>
       )}

@@ -1,7 +1,9 @@
-const ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
-const INSTAGRAM_GRAPH_API = 'https://graph.instagram.com/v20.0';
+import {
+  resolveBusinessAccountId,
+  resolveInstagramAccount,
+} from './instagram-accounts';
 
-let BUSINESS_ACCOUNT_ID: string | null = null;
+const INSTAGRAM_GRAPH_API = 'https://graph.instagram.com/v20.0';
 
 export interface PublishSlide {
   id: string;
@@ -33,7 +35,11 @@ async function readErrorResponse(response: Response): Promise<string> {
   return body;
 }
 
-async function uploadImageToInstagram(imageUrl: string, businessAccountId: string): Promise<string> {
+async function uploadImageToInstagram(
+  imageUrl: string,
+  businessAccountId: string,
+  accessToken: string
+): Promise<string> {
   const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -41,7 +47,7 @@ async function uploadImageToInstagram(imageUrl: string, businessAccountId: strin
       image_url: imageUrl,
       media_type: 'IMAGE',
       is_carousel_item: true,
-      access_token: ACCESS_TOKEN,
+      access_token: accessToken,
     }),
   });
 
@@ -53,14 +59,18 @@ async function uploadImageToInstagram(imageUrl: string, businessAccountId: strin
   return data.id;
 }
 
-async function createCarouselContainer(childrenIds: string[], businessAccountId: string): Promise<string> {
+async function createCarouselContainer(
+  childrenIds: string[],
+  businessAccountId: string,
+  accessToken: string
+): Promise<string> {
   const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       media_type: 'CAROUSEL',
       children: childrenIds.join(','),
-      access_token: ACCESS_TOKEN,
+      access_token: accessToken,
     }),
   });
 
@@ -72,14 +82,19 @@ async function createCarouselContainer(childrenIds: string[], businessAccountId:
   return data.id;
 }
 
-async function publishMedia(creationId: string, caption: string, businessAccountId: string): Promise<string> {
+async function publishMedia(
+  creationId: string,
+  caption: string,
+  businessAccountId: string,
+  accessToken: string
+): Promise<string> {
   const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media_publish`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       creation_id: creationId,
       caption,
-      access_token: ACCESS_TOKEN,
+      access_token: accessToken,
     }),
   });
 
@@ -91,8 +106,8 @@ async function publishMedia(creationId: string, caption: string, businessAccount
   return data.id;
 }
 
-async function getMediaPermalink(mediaId: string): Promise<string | null> {
-  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${mediaId}?fields=permalink&access_token=${ACCESS_TOKEN}`);
+async function getMediaPermalink(mediaId: string, accessToken: string): Promise<string | null> {
+  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${mediaId}?fields=permalink&access_token=${accessToken}`);
 
   if (!response.ok) {
     return null;
@@ -102,48 +117,32 @@ async function getMediaPermalink(mediaId: string): Promise<string | null> {
   return typeof data.permalink === 'string' ? data.permalink : null;
 }
 
-async function getBusinessAccountId(): Promise<string> {
-  if (BUSINESS_ACCOUNT_ID) return BUSINESS_ACCOUNT_ID;
-  if (!ACCESS_TOKEN) throw new Error('INSTAGRAM_ACCESS_TOKEN não configurado');
-
-  const response = await fetch(`${INSTAGRAM_GRAPH_API}/me?fields=id,username&access_token=${ACCESS_TOKEN}`);
-  if (!response.ok) {
-    throw new Error(await readErrorResponse(response) || 'Falha ao buscar usuário');
-  }
-
-  const data = await response.json();
-  BUSINESS_ACCOUNT_ID = data.id;
-  return BUSINESS_ACCOUNT_ID as string;
-}
-
 export async function publishCarouselWithUrls(params: {
   slides: PublishSlide[];
   caption: string;
   imageUrls: string[];
   carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
+  instagramAccountId?: string;
 }) {
-  if (!ACCESS_TOKEN) {
-    throw new Error('INSTAGRAM_ACCESS_TOKEN não configurado');
-  }
-
-  const { slides, caption, imageUrls } = params;
+  const { slides, caption, imageUrls, instagramAccountId } = params;
+  const account = resolveInstagramAccount(instagramAccountId);
 
   if (!slides.length || slides.length !== imageUrls.length) {
     throw new Error('Quantidade de slides e imagens não confere');
   }
 
-  const businessAccountId = await getBusinessAccountId();
+  const businessAccountId = await resolveBusinessAccountId(account);
 
   const childrenIds: string[] = [];
   for (const imageUrl of imageUrls) {
-    const containerId = await uploadImageToInstagram(imageUrl, businessAccountId);
+    const containerId = await uploadImageToInstagram(imageUrl, businessAccountId, account.accessToken);
     childrenIds.push(containerId);
   }
 
-  const carouselId = await createCarouselContainer(childrenIds, businessAccountId);
+  const carouselId = await createCarouselContainer(childrenIds, businessAccountId, account.accessToken);
   await new Promise((resolve) => setTimeout(resolve, 3000));
-  const publishedId = await publishMedia(carouselId, caption, businessAccountId);
-  const permalink = await getMediaPermalink(publishedId);
+  const publishedId = await publishMedia(carouselId, caption, businessAccountId, account.accessToken);
+  const permalink = await getMediaPermalink(publishedId, account.accessToken);
 
   return {
     postId: publishedId,

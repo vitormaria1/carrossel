@@ -34,6 +34,7 @@ export interface CarouselState {
   postCaption: string;
   publishMode: 'now' | 'scheduled';
   scheduledFor: string;
+  instagramAccountId: string;
   cards: CarouselCard[];
   totalCards: number;
   isGenerating: boolean;
@@ -50,6 +51,7 @@ export interface CarouselState {
   setPostCaption: (caption: string) => void;
   setPublishMode: (mode: 'now' | 'scheduled') => void;
   setScheduledFor: (scheduledFor: string) => void;
+  setInstagramAccountId: (instagramAccountId: string) => void;
   setCards: (cards: CarouselCard[]) => void;
   setTotalCards: (total: number) => void;
   setIsGenerating: (generating: boolean) => void;
@@ -111,6 +113,7 @@ export const useCarouselStore = create<CarouselState>()(
       postCaption: '',
       publishMode: 'now',
       scheduledFor: '',
+      instagramAccountId: '',
       cards: [],
       cardsStandard: [],
       cardsTweet: [],
@@ -127,6 +130,7 @@ export const useCarouselStore = create<CarouselState>()(
       setPostCaption: (postCaption) => set({ postCaption }),
       setPublishMode: (publishMode) => set({ publishMode }),
       setScheduledFor: (scheduledFor) => set({ scheduledFor }),
+      setInstagramAccountId: (instagramAccountId) => set({ instagramAccountId }),
       setCards: (cards) => set((state) => patchTemplateBuckets(state, detectTemplate(cards), cards)),
       setTotalCards: (total) => set({ totalCards: total }),
       setIsGenerating: (generating) => set({ isGenerating: generating }),
@@ -197,6 +201,7 @@ export const useCarouselStore = create<CarouselState>()(
         postCaption: state.postCaption,
         publishMode: state.publishMode,
         scheduledFor: state.scheduledFor,
+        instagramAccountId: state.instagramAccountId,
         cards: state.cards,
         totalCards: state.totalCards,
         carouselTemplate: state.carouselTemplate,

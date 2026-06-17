@@ -7,6 +7,7 @@ import {
 } from '@/lib/scheduled-posts';
 
 interface SchedulePublishRequest {
+  instagramAccountId?: string;
   slides: ScheduledCarouselSlide[];
   caption: string;
   carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
     const id = createScheduledPostId();
     const scheduledPost: ScheduledPost = {
       id,
+      instagramAccountId: body.instagramAccountId || 'default',
       slides: body.slides,
       caption: body.caption,
       carouselTemplate: body.carouselTemplate || 'standard',

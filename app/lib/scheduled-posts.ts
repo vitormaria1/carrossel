@@ -17,6 +17,7 @@ export type ScheduledPostStatus = 'scheduled' | 'publishing' | 'published' | 'fa
 
 export interface ScheduledPost {
   id: string;
+  instagramAccountId: string;
   slides: ScheduledCarouselSlide[];
   caption: string;
   carouselTemplate: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
