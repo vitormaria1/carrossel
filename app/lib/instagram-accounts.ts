@@ -14,6 +14,10 @@ export interface InstagramAccountSummary {
 const DEFAULT_ACCOUNT_ID = 'default';
 const businessAccountCache = new Map<string, string>();
 
+function normalizeAccessToken(token: string): string {
+  return token.trim().replace(/^['"]|['"]$/g, '');
+}
+
 function parseAccountsJson(raw: string | undefined): InstagramAccountConfig[] {
   if (!raw) return [];
 
@@ -25,7 +29,7 @@ function parseAccountsJson(raw: string | undefined): InstagramAccountConfig[] {
       .map((entry) => ({
         id: String(entry?.id || '').trim(),
         label: String(entry?.label || '').trim(),
-        accessToken: String(entry?.accessToken || '').trim(),
+        accessToken: normalizeAccessToken(String(entry?.accessToken || '')),
         businessAccountId: String(entry?.businessAccountId || '').trim() || undefined,
       }))
       .filter((entry) => entry.id && entry.accessToken)
@@ -51,7 +55,7 @@ export function getInstagramAccounts(): InstagramAccountConfig[] {
     indexedAccounts.push({
       id: 'conta-1',
       label: process.env.INSTAGRAM_ACCOUNT_1_LABEL?.trim() || 'Conta 1',
-      accessToken: account1AccessToken,
+      accessToken: normalizeAccessToken(account1AccessToken),
       businessAccountId: account1BusinessAccountId || undefined,
     });
   }
@@ -60,7 +64,7 @@ export function getInstagramAccounts(): InstagramAccountConfig[] {
     indexedAccounts.push({
       id: 'conta-2',
       label: process.env.INSTAGRAM_ACCOUNT_2_LABEL?.trim() || 'Conta 2',
-      accessToken: account2AccessToken,
+      accessToken: normalizeAccessToken(account2AccessToken),
       businessAccountId: account2BusinessAccountId || undefined,
     });
   }
@@ -76,7 +80,7 @@ export function getInstagramAccounts(): InstagramAccountConfig[] {
     {
       id: DEFAULT_ACCOUNT_ID,
       label: process.env.INSTAGRAM_ACCOUNT_LABEL?.trim() || 'Conta 1',
-      accessToken,
+      accessToken: normalizeAccessToken(accessToken),
       businessAccountId: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim() || undefined,
     },
   ];
@@ -123,7 +127,7 @@ export async function resolveBusinessAccountId(account: InstagramAccountConfig):
   }
 
   const response = await fetch(
-    `https://graph.facebook.com/v20.0/me?fields=id,username&access_token=${account.accessToken}`
+    `https://graph.facebook.com/v20.0/me?fields=id,username&access_token=${normalizeAccessToken(account.accessToken)}`
   );
 
   if (!response.ok) {

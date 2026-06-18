@@ -5,6 +5,10 @@ import {
 
 const INSTAGRAM_GRAPH_API = 'https://graph.facebook.com/v20.0';
 
+function normalizeAccessToken(token: string): string {
+  return token.trim().replace(/^['"]|['"]$/g, '');
+}
+
 export interface PublishSlide {
   id: string;
   text: string;
@@ -42,13 +46,13 @@ async function uploadImageToInstagram(
 ): Promise<string> {
   const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
       image_url: imageUrl,
       media_type: 'IMAGE',
-      is_carousel_item: true,
-      access_token: accessToken,
-    }),
+      is_carousel_item: 'true',
+      access_token: normalizeAccessToken(accessToken),
+    }).toString(),
   });
 
   if (!response.ok) {
@@ -66,12 +70,12 @@ async function createCarouselContainer(
 ): Promise<string> {
   const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
       media_type: 'CAROUSEL',
       children: childrenIds.join(','),
-      access_token: accessToken,
-    }),
+      access_token: normalizeAccessToken(accessToken),
+    }).toString(),
   });
 
   if (!response.ok) {
@@ -90,12 +94,12 @@ async function publishMedia(
 ): Promise<string> {
   const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media_publish`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
       creation_id: creationId,
       caption,
-      access_token: accessToken,
-    }),
+      access_token: normalizeAccessToken(accessToken),
+    }).toString(),
   });
 
   if (!response.ok) {
@@ -107,7 +111,9 @@ async function publishMedia(
 }
 
 async function getMediaPermalink(mediaId: string, accessToken: string): Promise<string | null> {
-  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${mediaId}?fields=permalink&access_token=${accessToken}`);
+  const response = await fetch(
+    `${INSTAGRAM_GRAPH_API}/${mediaId}?fields=permalink&access_token=${normalizeAccessToken(accessToken)}`
+  );
 
   if (!response.ok) {
     return null;

@@ -2,12 +2,16 @@ const INSTAGRAM_GRAPH_API = 'https://graph.facebook.com/v20.0';
 const ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
 const APP_ID = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
 
+function normalizeAccessToken(token: string): string {
+  return token.trim().replace(/^['"]|['"]$/g, '');
+}
+
 export async function getInstagramBusinessAccount() {
   if (!ACCESS_TOKEN) throw new Error('Token não configurado');
 
   try {
     const response = await fetch(
-      `${INSTAGRAM_GRAPH_API}/me?fields=id,username,name&access_token=${ACCESS_TOKEN}`
+      `${INSTAGRAM_GRAPH_API}/me?fields=id,username,name&access_token=${normalizeAccessToken(ACCESS_TOKEN)}`
     );
 
     if (!response.ok) {
@@ -32,12 +36,12 @@ export async function uploadImage(imageUrl: string): Promise<string> {
       `${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
           image_url: imageUrl,
-          is_carousel_item: true,
-          access_token: ACCESS_TOKEN,
-        }),
+          is_carousel_item: 'true',
+          access_token: normalizeAccessToken(ACCESS_TOKEN),
+        }).toString(),
       }
     );
 
@@ -65,12 +69,12 @@ export async function createCarousel(childrenIds: string[]): Promise<string> {
       `${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
           media_type: 'CAROUSEL',
           children: childrenIds.join(','),
-          access_token: ACCESS_TOKEN,
-        }),
+          access_token: normalizeAccessToken(ACCESS_TOKEN),
+        }).toString(),
       }
     );
 
@@ -98,12 +102,12 @@ export async function publishCarousel(creationId: string, caption: string): Prom
       `${INSTAGRAM_GRAPH_API}/${businessAccountId}/media_publish`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
           creation_id: creationId,
           caption: caption,
-          access_token: ACCESS_TOKEN,
-        }),
+          access_token: normalizeAccessToken(ACCESS_TOKEN),
+        }).toString(),
       }
     );
 
