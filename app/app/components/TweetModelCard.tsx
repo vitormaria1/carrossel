@@ -137,7 +137,7 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
       >
         {!isEditingText ? (
           <>
-            <div className="max-h-[240px] overflow-y-auto pr-1">
+            <div className="min-h-[240px] pr-1">
               <p className="text-gray-900 text-sm leading-relaxed break-words whitespace-pre-wrap">
                 {card.text || '...'}
               </p>
