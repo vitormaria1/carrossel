@@ -1,4 +1,4 @@
-const INSTAGRAM_GRAPH_API = 'https://graph.facebook.com/v20.0';
+const INSTAGRAM_GRAPH_API = 'https://graph.instagram.com/v20.0';
 const ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
 const APP_ID = process.env.NEXT_PUBLIC_INSTAGRAM_APP_ID;
 
