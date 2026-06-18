@@ -126,21 +126,8 @@ export async function resolveBusinessAccountId(account: InstagramAccountConfig):
     return cached;
   }
 
-  const response = await fetch(
-    `https://graph.facebook.com/v20.0/me?fields=id,username&access_token=${normalizeAccessToken(account.accessToken)}`
+  throw new Error(
+    `Conta ${account.id} sem INSTAGRAM_BUSINESS_ACCOUNT_ID configurado. ` +
+      'Adicione o ID da conta profissional do Instagram no mesmo bloco de variáveis da conta.'
   );
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || 'Falha ao buscar Business Account ID');
-  }
-
-  const data = await response.json();
-  if (!data?.id) {
-    throw new Error('Business Account ID não retornado pela API do Instagram');
-  }
-
-  const businessAccountId = String(data.id);
-  businessAccountCache.set(account.id, businessAccountId);
-  return businessAccountId;
 }
