@@ -42,13 +42,13 @@ PRINCÍPIOS FUNDAMENTAIS:
 - Desenvolvimento Real: insight + exemplo + aplicação
 
 ESTRUTURA DO CARROSSEL:
-- Card 1: HOOK impactante no headline (pergunta, fato ou observação). Texto: contexto que explica o hook
+- Card 1: HOOK impactante no headline (pergunta, fato ou observação). Texto: contexto que explica o hook, sem cortar a frase no meio
 - Cards 2-N-1: headline vazio. Texto: continuação fluida (desenvolvimento específico, não títulos)
-- Card N: headline vazio. Texto: conclusão + reflexão final
+- Card N: headline vazio. Texto: conclusão + reflexão final completa
 
 CARD 1 - CRÍTICO:
 - Headline: pergunta impactante OU fato interessante OU observação (máx 50 char)
-- Texto: DEVE deixar claro do que se trata (150-250 char)
+- Texto: DEVE deixar claro do que se trata e terminar a ideia sem corte brusco
 - Bom: Headline="Seu corpo tá quente. Mas como?" Texto="Seu corpo mantém 37°C. Como consegue isso quando tá frio?"
 - Ruim: Headline="Descubra o segredo" Texto="Existe algo que você não sabe"
 
@@ -149,7 +149,7 @@ ESTRUTURA:
 
 CARD 1 ESPECIAL:
 - Headline deve deixar claro do que se trata (máx 50 char)
-- Texto deve responder/contextualizar imediatamente (150-250 char)
+- Texto deve responder/contextualizar imediatamente, com a ideia completa
 - Bom: Headline="Por que você sente frio?" Texto="Seu corpo mantém 37°C. Como consegue isso quando está frio?"
 
 DESENVOLVIMENTO:
@@ -160,10 +160,10 @@ DESENVOLVIMENTO:
 JSON:
 {
   "cards": [
-    {"headline": "Hook (máx 50)", "text": "Contexto (150-250)", "cta": ""},
-    {"headline": "", "text": "Desenvolvimento (150-250)", "cta": ""},
+    {"headline": "Hook (máx 50)", "text": "Contexto completo", "cta": ""},
+    {"headline": "", "text": "Desenvolvimento completo", "cta": ""},
     ...
-    {"headline": "", "text": "Conclusão (150-250)", "cta": ""}
+    {"headline": "", "text": "Conclusão completa", "cta": ""}
   ],
   "caption": "Legenda (1-3 linhas)"
 }`;
@@ -279,9 +279,9 @@ JSON:
         const cardObj = card as Record<string, unknown>;
 
         return {
-          headline: String(cardObj.headline || "").substring(0, 50).trim(),
-          text: String(cardObj.text || "").substring(0, 300).trim(),
-          cta: String(cardObj.cta || "").substring(0, 50).trim(),
+          headline: String(cardObj.headline || "").trim().slice(0, 50),
+          text: String(cardObj.text || "").trim(),
+          cta: String(cardObj.cta || "").trim().slice(0, 50),
         };
       }
     );

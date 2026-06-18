@@ -93,7 +93,7 @@ ESTRUTURA DO CARROSSEL:
 
 RESTRIÇÕES:
 - Headline: máximo 50 caracteres
-- Texto: máximo 300 caracteres (desenvolvimento completo, 3-4 frases)
+- Texto: escreva a ideia completa, sem cortar no meio da frase
 - CTA: máximo 50 caracteres
 - Tom: ${toneOfVoice || 'inspirador'}, direto, sem clichês
 - Foco: Resolver o problema do público: ${targetAudience || 'alvo geral'}

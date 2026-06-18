@@ -286,9 +286,9 @@ export function generateNarrativeContent(
   }
 
   return {
-    headline: headline.substring(0, 50), // Limit to max 50 chars
-    text: text.substring(0, 300), // Limit to max 300 chars
-    cta: cta.substring(0, 50), // Limit to max 50 chars
+    headline: headline.trim().slice(0, 50), // Limit to max 50 chars
+    text: text.trim(), // Preserve full text so content does not cut mid-sentence
+    cta: cta.trim().slice(0, 50), // Limit to max 50 chars
   };
 }
 
