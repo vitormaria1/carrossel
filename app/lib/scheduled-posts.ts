@@ -59,6 +59,7 @@ export async function saveScheduledPost(post: ScheduledPost) {
   await put(scheduleKey(post.id), JSON.stringify(post), {
     access: 'public',
     contentType: 'application/json',
+    allowOverwrite: true,
   });
 }
 
