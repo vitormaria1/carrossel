@@ -97,7 +97,7 @@ export function TweetModelViewport() {
 
         {/* Cards Grid - Tweet Style */}
         <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 overflow-auto p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-max">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-max items-start">
             {cards.map((card, idx) => (
               <TweetModelCard
                 key={card.id}

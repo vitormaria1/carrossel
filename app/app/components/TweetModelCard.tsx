@@ -66,7 +66,7 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
   const shouldShowImage = isFirst || isLast;
 
   return (
-    <div className="flex h-full flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+    <div className="flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       {/* Tweet Header com Perfil */}
       <div className="px-4 py-3 flex-shrink-0">
         <div className="flex items-start gap-3">
@@ -131,13 +131,13 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
 
       {/* Tweet Text */}
       <div
-        className="px-4 py-3 relative group flex-1 min-h-0"
+        className="px-4 py-3 relative group"
         onMouseEnter={() => setTextHover(true)}
         onMouseLeave={() => setTextHover(false)}
       >
         {!isEditingText ? (
           <>
-            <div className="min-h-[240px] pr-1">
+            <div className="pr-1">
               <p className="text-gray-900 text-sm leading-relaxed break-words whitespace-pre-wrap">
                 {card.text || '...'}
               </p>
