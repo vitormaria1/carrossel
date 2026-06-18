@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const GRAPH_API = 'https://graph.facebook.com/v20.0';
+const INSTAGRAM_API = 'https://graph.instagram.com/v20.0';
 
 function normalizeAccessToken(token: string): string {
   return token.trim().replace(/^['"]|['"]$/g, '');
@@ -24,6 +25,11 @@ export async function GET() {
   );
   const meBody = await readBody(meResponse);
 
+  const instagramMeResponse = await fetch(
+    `${INSTAGRAM_API}/me?fields=id,username&access_token=${encodeURIComponent(accessToken)}`
+  );
+  const instagramMeBody = await readBody(instagramMeResponse);
+
   let businessResponseStatus: number | null = null;
   let businessBody = '';
 
@@ -40,6 +46,11 @@ export async function GET() {
       ok: meResponse.ok,
       status: meResponse.status,
       body: meBody,
+    },
+    instagramMe: {
+      ok: instagramMeResponse.ok,
+      status: instagramMeResponse.status,
+      body: instagramMeBody,
     },
     business: businessAccountId
       ? {
