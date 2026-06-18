@@ -3,7 +3,7 @@ import {
   resolveInstagramAccount,
 } from './instagram-accounts';
 
-const INSTAGRAM_GRAPH_API = 'https://graph.instagram.com/v20.0';
+const INSTAGRAM_GRAPH_API = 'https://graph.facebook.com/v20.0';
 
 export interface PublishSlide {
   id: string;

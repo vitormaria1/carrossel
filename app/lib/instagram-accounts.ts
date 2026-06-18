@@ -123,7 +123,7 @@ export async function resolveBusinessAccountId(account: InstagramAccountConfig):
   }
 
   const response = await fetch(
-    `https://graph.instagram.com/v20.0/me?fields=id,username&access_token=${account.accessToken}`
+    `https://graph.facebook.com/v20.0/me?fields=id,username&access_token=${account.accessToken}`
   );
 
   if (!response.ok) {
