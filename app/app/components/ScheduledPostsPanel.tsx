@@ -56,6 +56,7 @@ export function ScheduledPostsPanel() {
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [accounts, setAccounts] = useState<InstagramAccountSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [publishingPostId, setPublishingPostId] = useState('');
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
@@ -90,6 +91,37 @@ export function ScheduledPostsPanel() {
       setError(error instanceof Error ? error.message : 'Falha ao carregar agendamentos');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePublishNow = async (postId: string) => {
+    if (!postId || publishingPostId) {
+      return;
+    }
+
+    setPublishingPostId(postId);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/scheduled-posts/${postId}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await response.json()
+        : { error: await response.text() };
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Falha ao publicar agendamento');
+      }
+
+      await loadData();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Falha ao publicar agendamento');
+    } finally {
+      setPublishingPostId('');
     }
   };
 
@@ -194,6 +226,26 @@ export function ScheduledPostsPanel() {
                       </a>
                     ) : null}
                   </div>
+
+                  {post.status === 'scheduled' || post.status === 'failed' ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handlePublishNow(post.id)}
+                        disabled={publishingPostId === post.id}
+                        className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                      >
+                        {publishingPostId === post.id
+                          ? 'Publicando...'
+                          : post.status === 'failed'
+                            ? 'Tentar publicar novamente'
+                            : 'Publicar agora'}
+                      </button>
+                      <span className="text-xs text-gray-500">
+                        Ignora o cron e publica este post manualmente.
+                      </span>
+                    </div>
+                  ) : null}
 
                   <p className="mt-3 max-h-20 overflow-hidden text-sm text-gray-700">
                     {post.caption || 'Sem legenda'}
