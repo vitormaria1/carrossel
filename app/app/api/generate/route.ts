@@ -69,7 +69,7 @@ CONTEXTO DO USUÁRIO:
 - Objetivo: ${objective || 'leads'}
 `.trim();
 
-    let systemPrompt = `Você é um especialista em criar carrosséis para Instagram com narrativa transformacional de alta conversão.
+    const systemPrompt = `Você é um especialista em criar carrosséis para Instagram com narrativa transformacional de alta conversão.
 
 FILOSOFIA: Transformação pessoal através de ação e conhecimento.
 
@@ -87,9 +87,12 @@ PRINCÍPIOS:
 7. CONVERSÃO - Otimizar para ${objective}
 
 ESTRUTURA DO CARROSSEL:
-- Card 1: HOOK impactante que prende atenção
-- Cards 2-${totalCards - 1}: Desenvolvimento com narrativa fluida, mostrando expertise
-- Card Final: CTA forte com próximo passo claro para ${objective}
+${totalCards === 1
+    ? '- Card 1: HOOK impactante que prende atenção e fecha a ideia em um único card.'
+    : totalCards === 2
+      ? '- Card 1: HOOK impactante que prende atenção.\n- Card 2: Desenvolvimento e fechamento com CTA claro.'
+      : `- Card 1: HOOK impactante que prende atenção\n- Cards 2-${totalCards - 1}: Desenvolvimento com narrativa fluida, mostrando expertise\n- Card Final: CTA forte com próximo passo claro para ${objective}`
+  }
 
 RESTRIÇÕES:
 - Headline: máximo 50 caracteres
@@ -110,7 +113,17 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
   ]
 }`;
 
-    const messages: any[] = [
+    type ClaudeTextBlock = { type: 'text'; text: string };
+    type ClaudeDocumentBlock = {
+      type: 'document';
+      source: { type: 'file'; file_id: string };
+    };
+    type ClaudeMessage = {
+      role: 'user';
+      content: string | Array<ClaudeTextBlock | ClaudeDocumentBlock>;
+    };
+
+    const messages: ClaudeMessage[] = [
       {
         role: 'user',
         content: userPrompt,
@@ -119,16 +132,13 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
 
     // Adicionar documentos se fornecidos
     if (docIds && docIds.length > 0) {
-      messages[0] = {
-        role: 'user',
-        content: [
-          { type: 'text', text: userPrompt },
-          { type: 'text', text: '\n\nUse as informações dos documentos carregados para personalizar o carrossel:' },
-        ],
-      };
+      const content: Array<ClaudeTextBlock | ClaudeDocumentBlock> = [
+        { type: 'text', text: userPrompt },
+        { type: 'text', text: '\n\nUse as informações dos documentos carregados para personalizar o carrossel:' },
+      ];
 
       for (const docId of docIds) {
-        (messages[0].content as any[]).push({
+        content.push({
           type: 'document',
           source: {
             type: 'file',
@@ -136,14 +146,19 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
           },
         });
       }
+
+      messages[0] = {
+        role: 'user',
+        content,
+      };
     }
 
     const response = await client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
-      messages: messages,
+      messages,
       system: systemPrompt,
-    } as any);
+    });
 
     if (!response.content || response.content.length === 0) {
       throw new Error('Empty response from Claude API');
@@ -153,10 +168,10 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
     if (content.type !== 'text') throw new Error('Invalid response type from Claude');
 
     const jsonText = content.text.replace(/```json\n?|\n?```/g, '').trim();
-    const data = JSON.parse(jsonText);
+    const data = JSON.parse(jsonText) as { cards?: Array<Record<string, unknown>> };
 
     // Enriquecer cards com cores e metadados
-    const enrichedCards = data.cards.map((card: any, idx: number) => ({
+    const enrichedCards = (data.cards || []).map((card, idx) => ({
       ...card,
       colors: {
         bg: colors.bg,

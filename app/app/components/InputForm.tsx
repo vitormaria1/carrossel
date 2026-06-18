@@ -54,8 +54,8 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
       setError(`A ideia precisa ter pelo menos ${MIN_IDEA_LENGTH} caracteres`);
       return false;
     }
-    if (carouselTemplate !== 'vanderMaria' && (totalCards < 3 || totalCards > 20)) {
-      setError('Selecione entre 3 e 20 cards');
+    if (carouselTemplate !== 'vanderMaria' && (totalCards < 1 || totalCards > 20)) {
+      setError('Selecione entre 1 e 20 cards');
       return false;
     }
     setError('');
@@ -100,7 +100,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
           {CAROUSEL_TYPES.map((type) => (
             <button
               key={type.value}
-              onClick={() => setCarouselType(type.value as any)}
+              onClick={() => setCarouselType(type.value as typeof carouselType)}
               className={`p-3 rounded-lg border-2 transition text-left ${
                 carouselType === type.value
                   ? 'border-blue-600 bg-blue-50'
@@ -191,7 +191,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
         <div className="flex items-center gap-4">
           <input
             type="range"
-            min={3}
+            min={1}
             max={20}
             value={suggestedCardCount}
             onChange={(e) => setTotalCards(parseInt(e.target.value))}
@@ -203,7 +203,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
           </span>
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          {cardsLockedByTemplate ? 'Esse template gera sempre 5 slides.' : 'Escolha entre 3 e 20 cards.'}
+          {cardsLockedByTemplate ? 'Esse template gera sempre 5 slides.' : 'Escolha entre 1 e 20 cards.'}
         </p>
       </div>
 

@@ -143,9 +143,12 @@ ${objective ? `OBJETIVO: ${objective}` : ""}
 ${carouselType && carouselType !== 'auto' ? `TIPO: ${carouselType}` : "TIPO: detecte automáticamente"}
 
 ESTRUTURA:
-- Card 1: headline com hook (pergunta, fato ou observação). Texto explica o hook e contextualiza.
-- Cards 2-${totalCards - 1}: headline vazio. Texto continua a história naturalmente (um parágrafo cada).
-- Card ${totalCards}: headline vazio. Texto conclui + reflexão final.
+${totalCards === 1
+    ? '- Card 1: headline com hook. Texto fecha a ideia completa em um único card.'
+    : totalCards === 2
+      ? '- Card 1: headline com hook. Texto abre o tema.\n- Card 2: headline vazio. Texto conclui a ideia.'
+      : `- Card 1: headline com hook (pergunta, fato ou observação). Texto explica o hook e contextualiza.\n- Cards 2-${totalCards - 1}: headline vazio. Texto continua a história naturalmente (um parágrafo cada).\n- Card ${totalCards}: headline vazio. Texto conclui + reflexão final.`
+  }
 
 CARD 1 ESPECIAL:
 - Headline deve deixar claro do que se trata (máx 50 char)
@@ -201,7 +204,8 @@ JSON:
 
     const data = await response.json();
     console.log("📥 Resposta recebida do Claude");
-    console.log("📊 Blocos de conteúdo:", data.content?.map((b: any) => b.type).join(", "));
+    const contentBlocks = data.content as Array<{ type: string; text?: string }> | undefined;
+    console.log("📊 Blocos de conteúdo:", contentBlocks?.map((b) => b.type).join(", "));
 
     // Extrair conteúdo de texto (ignorando blocos de thinking)
     let textContent = "";
@@ -310,6 +314,10 @@ export async function generateCarouselFallback(
     text: "Exploraremos os pontos-chave para que você compreenda melhor esse tema.",
     cta: "Próximo",
   });
+
+  if (totalCards === 1) {
+    return cards;
+  }
 
   // Cards do meio: desenvolvimento genérico
   for (let i = 1; i < totalCards - 1; i++) {

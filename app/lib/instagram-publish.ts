@@ -63,6 +63,29 @@ async function uploadImageToInstagram(
   return data.id;
 }
 
+async function createSingleImageContainer(
+  imageUrl: string,
+  businessAccountId: string,
+  accessToken: string
+): Promise<string> {
+  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      image_url: imageUrl,
+      media_type: 'IMAGE',
+      access_token: normalizeAccessToken(accessToken),
+    }).toString(),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorResponse(response) || 'Falha ao criar post simples');
+  }
+
+  const data = await response.json();
+  return data.id;
+}
+
 async function createCarouselContainer(
   childrenIds: string[],
   businessAccountId: string,
@@ -138,6 +161,22 @@ export async function publishCarouselWithUrls(params: {
   }
 
   const businessAccountId = await resolveBusinessAccountId(account);
+
+  if (imageUrls.length === 1) {
+    const containerId = await createSingleImageContainer(
+      imageUrls[0],
+      businessAccountId,
+      account.accessToken
+    );
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const publishedId = await publishMedia(containerId, caption, businessAccountId, account.accessToken);
+    const permalink = await getMediaPermalink(publishedId, account.accessToken);
+
+    return {
+      postId: publishedId,
+      url: permalink || `https://instagram.com/p/${publishedId}`,
+    };
+  }
 
   const childrenIds: string[] = [];
   for (const imageUrl of imageUrls) {
