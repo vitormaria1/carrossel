@@ -102,6 +102,7 @@ export function ScheduledPostsPanel() {
   const scheduledCount = posts.filter((post) => post.status === 'scheduled').length;
   const publishedCount = posts.filter((post) => post.status === 'published').length;
   const failedCount = posts.filter((post) => post.status === 'failed').length;
+  const now = Date.now();
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -149,6 +150,11 @@ export function ScheduledPostsPanel() {
           <div className="space-y-3">
             {posts.map((post) => {
               const accountLabel = accountMap.get(post.instagramAccountId) || post.instagramAccountId;
+              const isOverdue = post.status === 'scheduled' && new Date(post.scheduledFor).getTime() < now;
+              const statusLabel = isOverdue ? 'atrasado' : post.status;
+              const statusStyle = isOverdue
+                ? 'bg-orange-100 text-orange-800 border-orange-200'
+                : STATUS_STYLES[post.status];
 
               return (
                 <div key={post.id} className="rounded-xl border border-gray-200 bg-white p-4">
@@ -156,9 +162,9 @@ export function ScheduledPostsPanel() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-semibold ${STATUS_STYLES[post.status]}`}
+                          className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-semibold ${statusStyle}`}
                         >
-                          {post.status}
+                          {statusLabel}
                         </span>
                         <span className="text-xs text-gray-500">
                           {post.carouselTemplate}
@@ -170,6 +176,11 @@ export function ScheduledPostsPanel() {
                       <p className="mt-1 text-sm text-gray-600">
                         {formatDateTime(post.scheduledFor)}
                       </p>
+                      {isOverdue ? (
+                        <p className="mt-1 text-xs font-semibold text-orange-700">
+                          Esse item já passou do horário e ainda está como agendado. O job não o processou ainda.
+                        </p>
+                      ) : null}
                     </div>
 
                     {post.url ? (

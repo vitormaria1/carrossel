@@ -66,9 +66,9 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
   const shouldShowImage = isFirst || isLast;
 
   return (
-    <div className="flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+    <div className="flex h-full flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       {/* Tweet Header com Perfil */}
-      <div className="px-4 py-3">
+      <div className="px-4 py-3 flex-shrink-0">
         <div className="flex items-start gap-3">
           <img
             src="https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg"
@@ -131,15 +131,17 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
 
       {/* Tweet Text */}
       <div
-        className="px-4 py-3 relative group"
+        className="px-4 py-3 relative group flex-1 min-h-0"
         onMouseEnter={() => setTextHover(true)}
         onMouseLeave={() => setTextHover(false)}
       >
         {!isEditingText ? (
           <>
-            <p className="text-gray-900 text-sm leading-relaxed break-words whitespace-pre-wrap">
-              {card.text || '...'}
-            </p>
+            <div className="max-h-[240px] overflow-y-auto pr-1">
+              <p className="text-gray-900 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                {card.text || '...'}
+              </p>
+            </div>
             {textHover && (
               <button
                 onClick={() => setIsEditingText(true)}
@@ -179,12 +181,12 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
 
       {/* Tweet Image (se for primeiro ou último) */}
       {shouldShowImage && (
-        <div
-          className="relative bg-gray-100 overflow-hidden"
-          style={{ aspectRatio: '16 / 9' }}
-          onMouseEnter={() => setImageHover(true)}
-          onMouseLeave={() => setImageHover(false)}
-        >
+          <div
+            className="relative bg-gray-100 overflow-hidden flex-shrink-0"
+            style={{ aspectRatio: '16 / 9' }}
+            onMouseEnter={() => setImageHover(true)}
+            onMouseLeave={() => setImageHover(false)}
+          >
           {card.imageUrl ? (
             <>
               <img
