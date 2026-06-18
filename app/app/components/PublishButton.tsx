@@ -56,7 +56,7 @@ export function PublishButton() {
 
         if (!active) return;
 
-        const accounts = Array.isArray(data.accounts) ? data.accounts : [];
+        const accounts: InstagramAccountSummary[] = Array.isArray(data.accounts) ? data.accounts : [];
         setInstagramAccounts(accounts);
 
         if (accounts[0]?.id && !accounts.some((account) => account.id === instagramAccountId)) {
