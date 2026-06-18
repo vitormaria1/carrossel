@@ -156,7 +156,7 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
     const response = await client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
-      messages,
+      messages: messages as never,
       system: systemPrompt,
     });
 
