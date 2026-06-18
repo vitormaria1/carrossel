@@ -59,7 +59,7 @@ export function PublishButton() {
         const accounts = Array.isArray(data.accounts) ? data.accounts : [];
         setInstagramAccounts(accounts);
 
-        if (!instagramAccountId && accounts[0]?.id) {
+        if (accounts[0]?.id && !accounts.some((account) => account.id === instagramAccountId)) {
           setInstagramAccountId(accounts[0].id);
         }
       } catch (error) {
