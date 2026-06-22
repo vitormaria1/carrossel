@@ -6,12 +6,23 @@ import { TemplateViewport } from './components/TemplateViewport';
 import { UserContextForm } from './components/UserContextForm';
 import { PublishButton } from './components/PublishButton';
 import { ScheduledPostsPanel } from './components/ScheduledPostsPanel';
-import { useCarouselStore } from '@/lib/store';
+import { useCarouselStore, type CarouselCard } from '@/lib/store';
 import { useUserContext } from '@/lib/user-context';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { generateVanderMariaCarousel } from '@/lib/vander-maria';
 
+type VanderMariaStoreCard = CarouselCard & {
+  textInScreen: string;
+  slideType: number;
+  generatedImageUrl?: string;
+  highlights?: string[];
+  ctaButtonText?: string;
+  dynamics?: string;
+};
+
 export default function HomeClient() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<'create' | 'scheduled'>('create');
@@ -68,9 +79,12 @@ export default function HomeClient() {
           (step) => console.log(`📍 ${step}`)
         );
 
-        const formattedCards = vanderCards.map((card: any) => ({
+        const formattedCards: VanderMariaStoreCard[] = vanderCards.map((card) => ({
           ...card,
-          carouselTemplate: 'vanderMaria',
+          text: card.textInScreen,
+          imageType: 'html' as const,
+          colors: card.colors ?? { bg: '#F4F0E8', text: '#1A0F0F' },
+          carouselTemplate: 'vanderMaria' as const,
         }));
 
         setCards(formattedCards);
@@ -108,14 +122,21 @@ export default function HomeClient() {
         throw new Error(error.error || 'Erro ao gerar carrossel');
       }
 
-      const data = await res.json();
+      const data = (await res.json()) as {
+        cards?: Array<{
+          text?: string;
+          headline?: string;
+          cta?: string;
+        }>;
+        caption?: string;
+      };
 
       if (data.cards) {
-        const cards = data.cards.map((card: any, idx: number) => {
+        const cards = data.cards.map((card, idx) => {
           const colors = { bg: '#FFFFFF', text: '#0C1014' };
           return {
             id: `card-${idx}`,
-            text: card.text,
+            text: card.text || '',
             headline: card.headline,
             cta: card.cta,
             caption: idx === 0 ? data.caption : undefined,
@@ -139,6 +160,12 @@ export default function HomeClient() {
     }
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.replace('/login');
+    router.refresh();
+  };
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#f8fbff,white_40%,#f3f4f6)]">
       <header className="border-b border-gray-700 bg-gradient-to-r from-gray-950 via-gray-900 to-black">
@@ -152,10 +179,19 @@ export default function HomeClient() {
                 Transforme ideias, ofertas e documentos em carrosséis prontos para publicar.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-center text-white">
-              <StatPill label="Template" value={carouselTemplate === 'tweetExpanded' ? 'Expandido' : carouselTemplate === 'vanderMaria' ? 'Vander' : carouselTemplate === 'tweet' ? 'Tweet' : 'Standard'} />
-              <StatPill label="Cards" value={String(cards.length || totalCards)} />
-              <StatPill label="Objetivo" value={objective} />
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="grid grid-cols-3 gap-3 text-center text-white">
+                <StatPill label="Template" value={carouselTemplate === 'tweetExpanded' ? 'Expandido' : carouselTemplate === 'vanderMaria' ? 'Vander' : carouselTemplate === 'tweet' ? 'Tweet' : 'Standard'} />
+                <StatPill label="Cards" value={String(cards.length || totalCards)} />
+                <StatPill label="Objetivo" value={objective} />
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Sair
+              </button>
             </div>
           </div>
         </div>
