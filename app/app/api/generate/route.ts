@@ -2,7 +2,9 @@ import { Anthropic } from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { generateNarrativeContent, detectCarouselType, getDesignColors } from '@/lib/davi-narrative';
 
-const client = new Anthropic();
+function getAnthropicClient() {
+  return new Anthropic();
+}
 
 interface GenerateRequest {
   idea: string;
@@ -153,7 +155,7 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
       };
     }
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
       messages: messages as never,

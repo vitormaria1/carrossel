@@ -3,7 +3,9 @@ import { Anthropic } from '@anthropic-ai/sdk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const client = new Anthropic();
+function getAnthropicClient() {
+  return new Anthropic();
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     fs.writeFileSync(filepath, buffer);
 
-    const uploadResponse = await client.beta.files.upload(
+    const uploadResponse = await getAnthropicClient().beta.files.upload(
       {
         file: new File([buffer], file.name, { type: file.type })
       },
