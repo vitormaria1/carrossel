@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_COOKIE_NAME, isAuthenticatedSession } from './lib/auth';
 
+export const runtime = 'edge';
+
 const PUBLIC_API_PATHS = ['/api/auth/login', '/api/auth/logout'];
 
 function isStaticAsset(pathname: string) {
