@@ -11,6 +11,8 @@ interface GenerateRequest {
   prompt: string;
   totalCards: number;
   docIds?: string[];
+  carouselType?: string;
+  carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
   // User context
   expertise?: string;
   yearsExperience?: number;
@@ -35,16 +37,19 @@ export async function POST(req: NextRequest) {
       targetAudience,
       toneOfVoice,
       objective,
+      carouselType,
+      carouselTemplate,
     } = (await req.json()) as GenerateRequest;
 
-    // Detectar tipo de carrossel baseado na ideia
-    const carouselType = detectCarouselType(idea);
-    const colors = getDesignColors(carouselType);
+    const resolvedCarouselType = carouselType && carouselType !== 'auto'
+      ? carouselType
+      : detectCarouselType(idea);
+    const colors = getDesignColors(resolvedCarouselType);
 
     // Mock response quando API_KEY não está configurada
     if (!process.env.ANTHROPIC_API_KEY) {
       const mockCards = Array.from({ length: totalCards }, (_, i) => {
-        const narrative = generateNarrativeContent(idea, carouselType, i, totalCards);
+        const narrative = generateNarrativeContent(idea, resolvedCarouselType, i, totalCards);
         return {
           headline: narrative.headline,
           text: narrative.text,
@@ -75,7 +80,9 @@ CONTEXTO DO USUÁRIO:
 
 FILOSOFIA: Transformação pessoal através de ação e conhecimento.
 
-TIPO DE CARROSSEL DETECTADO: ${carouselType.toUpperCase()}
+TIPO DE CARROSSEL DETECTADO: ${resolvedCarouselType.toUpperCase()}
+
+TEMPLATE ESCOLHIDO: ${(carouselTemplate || 'standard').toUpperCase()}
 
 ${userContext}
 
@@ -180,12 +187,15 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
         text: colors.text,
         accent: colors.accent,
       },
-      carouselType,
+      carouselType: resolvedCarouselType,
       cardIndex: idx,
       totalCards,
     }));
 
-    return NextResponse.json({ cards: enrichedCards });
+    return NextResponse.json({
+      cards: enrichedCards,
+      carouselTemplate: carouselTemplate || 'standard',
+    });
   } catch (error) {
     console.error('Generate error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to generate carousel';

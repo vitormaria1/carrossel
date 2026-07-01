@@ -2,6 +2,8 @@
 
 import { CarouselCard, useCarouselStore } from '@/lib/store';
 import { useMemo, useRef, useState } from 'react';
+import { getVanderBrandProfile } from '@/lib/brand-profile';
+import Image, { type ImageLoaderProps } from 'next/image';
 
 interface TweetExpandedCardProps {
   card: CarouselCard;
@@ -9,6 +11,8 @@ interface TweetExpandedCardProps {
   totalCards: number;
   isLast: boolean;
 }
+
+const imagePassthroughLoader = ({ src }: ImageLoaderProps) => src;
 
 function renderHighlightedText(text: string) {
   // Highlight syntax: **texto destacado**
@@ -37,8 +41,8 @@ function renderHighlightedText(text: string) {
 }
 
 export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpandedCardProps) {
-  const profileImageUrl =
-    'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
+  const brandProfile = getVanderBrandProfile();
+  const profileImageUrl = brandProfile.profileImageUrl || '/profile.jpg';
 
   const { updateCard } = useCarouselStore();
   const [isEditingText, setIsEditingText] = useState(false);
@@ -106,15 +110,19 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
                 className="w-[44px] h-[44px] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
                 style={{ backgroundColor: '#7A1C1C' }}
               >
-                <img
+                <Image
+                  loader={imagePassthroughLoader}
                   src={profileImageUrl}
                   alt="Foto de perfil"
+                  width={44}
+                  height={44}
+                  unoptimized
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="leading-tight">
-                <div className="text-[14px] font-bold text-[#F4F0E8]">Vander Maria</div>
-                <div className="text-[12px] text-[#888]">@vandermarias</div>
+                <div className="text-[14px] font-bold text-[#F4F0E8]">{brandProfile.displayName}</div>
+                <div className="text-[12px] text-[#888]">{brandProfile.handle}</div>
               </div>
             </div>
           )}
@@ -140,9 +148,14 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
                         <div className="w-full">
                           {card.imageUrl ? (
                             <div className="relative">
-                              <img
+                              <Image
+                                loader={imagePassthroughLoader}
                                 src={card.imageUrl}
                                 alt="Imagem do card"
+                                width={960}
+                                height={640}
+                                unoptimized
+                                sizes="(max-width: 768px) 100vw, 720px"
                                 className="w-full max-h-64 object-cover rounded-lg border border-[#333]"
                               />
                               <div className="absolute top-2 right-2 flex gap-2">
@@ -216,9 +229,13 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
             ) : (
               <div className="w-full text-center space-y-5">
                 <div className="flex justify-center">
-                  <img
-                    src="/vm-mark.png"
+                  <Image
+                    loader={imagePassthroughLoader}
+                    src={brandProfile.markImageUrl || '/vm-mark.png'}
                     alt="Logo"
+                    width={180}
+                    height={72}
+                    unoptimized
                     className="h-[72px] w-auto object-contain"
                     style={{ filter: 'drop-shadow(0 0 0 rgba(0,0,0,0))' }}
                   />
@@ -264,9 +281,14 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
                   <div className="w-full">
                     {card.imageUrl ? (
                       <div className="relative">
-                        <img
+                        <Image
+                          loader={imagePassthroughLoader}
                           src={card.imageUrl}
                           alt="Imagem do card"
+                          width={960}
+                          height={560}
+                          unoptimized
+                          sizes="(max-width: 768px) 100vw, 720px"
                           className="w-full max-h-56 object-cover rounded-lg border border-[#333]"
                         />
                         <div className="absolute top-2 right-2 flex gap-2">
@@ -348,8 +370,8 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
           <div className="mt-auto">
             <div className="h-px w-full bg-[#333]" />
             <div className="flex justify-between pt-2 text-[11px] text-[#666]">
-              <span>Vander Maria</span>
-              <span>@vandermarias</span>
+              <span>{brandProfile.displayName}</span>
+              <span>{brandProfile.handle}</span>
             </div>
             <div className="pt-2 text-[10px] text-[#444] text-center">
               {idx + 1}/{totalCards}

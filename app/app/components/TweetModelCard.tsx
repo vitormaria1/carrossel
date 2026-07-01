@@ -2,6 +2,8 @@
 
 import { CarouselCard, useCarouselStore } from '@/lib/store';
 import { useState, useRef } from 'react';
+import { getTweetBrandProfile } from '@/lib/brand-profile';
+import Image, { type ImageLoaderProps } from 'next/image';
 
 interface TweetModelCardProps {
   card: CarouselCard;
@@ -11,7 +13,10 @@ interface TweetModelCardProps {
   isLast: boolean;
 }
 
-export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: TweetModelCardProps) {
+const imagePassthroughLoader = ({ src }: ImageLoaderProps) => src;
+
+export function TweetModelCard({ card, isFirst, isLast }: TweetModelCardProps) {
+  const brandProfile = getTweetBrandProfile();
   const { updateCard } = useCarouselStore();
   const [imageHover, setImageHover] = useState(false);
   const [textHover, setTextHover] = useState(false);
@@ -70,15 +75,19 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
       {/* Tweet Header com Perfil */}
       <div className="px-4 py-3 flex-shrink-0">
         <div className="flex items-start gap-3">
-          <img
-            src="https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg"
+          <Image
+            loader={imagePassthroughLoader}
+            src={brandProfile.profileImageUrl || '/profile.jpg'}
             alt="Profile"
-            className="w-12 h-12 rounded-full flex-shrink-0"
+            width={48}
+            height={48}
+            unoptimized
+            className="w-12 h-12 rounded-full flex-shrink-0 object-cover"
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-start flex-col">
-              <span className="font-bold text-gray-900">Vitor Maria</span>
-              <span className="text-gray-500 text-sm">@vitor_smaria</span>
+              <span className="font-bold text-gray-900">{brandProfile.displayName}</span>
+              <span className="text-gray-500 text-sm">{brandProfile.handle}</span>
             </div>
           </div>
         </div>
@@ -189,10 +198,14 @@ export function TweetModelCard({ card, idx, totalCards, isFirst, isLast }: Tweet
           >
           {card.imageUrl ? (
             <>
-              <img
+              <Image
+                loader={imagePassthroughLoader}
                 src={card.imageUrl}
                 alt="Card"
-                className="w-full h-full object-cover"
+                fill
+                unoptimized
+                sizes="(max-width: 768px) 100vw, 640px"
+                className="object-cover"
               />
               {imageHover && (
                 <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center gap-2">

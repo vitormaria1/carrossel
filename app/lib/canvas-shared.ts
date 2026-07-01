@@ -5,6 +5,7 @@
  */
 
 import { CarouselCard } from './store';
+import { getTweetBrandProfile } from './brand-profile';
 
 export interface RenderOptions {
   profileImg?: HTMLImageElement | null;
@@ -23,6 +24,7 @@ export function renderTweetCardOnCanvas(
   options: RenderOptions = {}
 ): void {
   const { profileImg = null, cardImg = null } = options;
+  const brandProfile = getTweetBrandProfile();
 
   // Auto-fit: evita texto cortado quando o modelo gera copy maior que o espaço disponível
   // Mantém o layout/harmonia ajustando levemente tamanhos e line-height.
@@ -50,7 +52,6 @@ export function renderTweetCardOnCanvas(
   const padding = 50;
   const textWidth = canvas.width - padding * 2;
   const profileImageSize = 110;
-  const imageMaxHeight = 550;
   const imageMaxWidth = canvas.width - padding * 2;
   const imageWidth = imageMaxWidth;
   const imageHeight = (imageWidth * 9) / 16;
@@ -135,11 +136,11 @@ export function renderTweetCardOnCanvas(
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText('Vitor Maria', textStartX, profileY + 5);
+  ctx.fillText(brandProfile.displayName, textStartX, profileY + 5);
 
   ctx.font = '40px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
   ctx.fillStyle = '#7A7A7A';
-  ctx.fillText('@vitor_smaria', textStartX, profileY + 55);
+  ctx.fillText(brandProfile.handle, textStartX, profileY + 55);
 
   currentY += profileImageSize + 20;
 

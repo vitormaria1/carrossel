@@ -26,6 +26,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname.startsWith('/api/external/')) {
+    return NextResponse.next();
+  }
+
   if (pathname === '/login') {
     if (isAuthed) {
       return NextResponse.redirect(new URL('/', request.url));

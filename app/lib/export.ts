@@ -1,5 +1,19 @@
 import { CarouselCard } from './store';
 import { renderTweetCardOnCanvas } from './canvas-shared';
+import { getTweetBrandProfile, getVanderBrandProfile } from './brand-profile';
+
+declare global {
+  interface Window {
+    JSZip?: {
+      new (): {
+        folder(name: string): {
+          file(name: string, data: Blob | string): void;
+        } | null;
+        generateAsync(options: { type: 'blob' }): Promise<Blob>;
+      };
+    };
+  }
+}
 
 /**
  * Carrega imagem de forma segura
@@ -46,6 +60,7 @@ function drawCircleImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x
  */
 export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string = 'tweet.png') {
   try {
+    const brandProfile = getTweetBrandProfile();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d', { alpha: false });
 
@@ -72,7 +87,7 @@ export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string 
     const profileImageSize = 110;
 
     // Se não tem imagem, centraliza verticalmente. Se tem, usa margem pequena.
-    let marginTop = card.imageUrl ? 50 : 150;
+    const marginTop = card.imageUrl ? 50 : 150;
 
     // Perfil (topo) - PEQUENO E COMPACTO
     const profileX = marginSides;
@@ -82,8 +97,7 @@ export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string 
     try {
       // 🟡 Usar variável de ambiente em vez de URL hardcoded
       const profileImageUrl =
-        process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
-        'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
+        brandProfile.profileImageUrl;
       if (profileImageUrl) {
         const profileImg = await loadImage(profileImageUrl);
         drawCircleImage(ctx, profileImg, profileX, profileY, profileImageSize / 2);
@@ -104,11 +118,11 @@ export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string 
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('Vitor Maria', profileX + profileImageSize + 30, profileY + 5);
+    ctx.fillText(brandProfile.displayName, profileX + profileImageSize + 30, profileY + 5);
 
     ctx.font = '40px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = '#7A7A7A';
-    ctx.fillText('@vitor_smaria', profileX + profileImageSize + 30, profileY + 55);
+    ctx.fillText(brandProfile.handle, profileX + profileImageSize + 30, profileY + 55);
 
     // Espaço reduzido entre perfil e texto
     const textX = marginSides;
@@ -121,7 +135,7 @@ export async function exportTweetCardAsPNG(card: CarouselCard, fileName: string 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
-    const lines = wrapTextForCanvas(ctx, card.text, textWidth, 56);
+    const lines = wrapTextForCanvas(ctx, card.text, textWidth);
     let currentY = textY;
 
     for (const line of lines) {
@@ -342,7 +356,7 @@ export async function exportCardAsPNG(card: CarouselCard, fileName: string = 'ca
  */
 export async function exportAllCardsAsZip(cards: CarouselCard[]) {
   // Verifica se JSZip está disponível
-  const JSZip = (window as any).JSZip;
+  const JSZip = window.JSZip;
   if (!JSZip) {
     console.error('JSZip not available');
     return;
@@ -469,7 +483,7 @@ function isLightBg(bgColor: string): boolean {
 /**
  * Quebra texto para o canvas (Tweet Model)
  */
-function wrapTextForCanvas(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, lineHeight: number): string[] {
+function wrapTextForCanvas(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
@@ -586,6 +600,7 @@ const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos
 
 // Carrega imagem de perfil com cache + TTL
 async function loadProfileImage(): Promise<HTMLImageElement | null> {
+  const brandProfile = getTweetBrandProfile();
   const now = Date.now();
 
   // Se tem cache válido, retornar
@@ -600,9 +615,11 @@ async function loadProfileImage(): Promise<HTMLImageElement | null> {
     profileImageCache = null;
   }
 
-  const profileImageUrl =
-    process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ||
-    'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
+  const profileImageUrl = brandProfile.profileImageUrl;
+
+  if (!profileImageUrl) {
+    return null;
+  }
 
   return new Promise((resolve) => {
     const img = new Image();
@@ -618,35 +635,6 @@ async function loadProfileImage(): Promise<HTMLImageElement | null> {
     };
     img.src = profileImageUrl;
   });
-}
-
-// Renderiza foto de perfil no canvas
-function drawProfileImage(ctx: CanvasRenderingContext2D, profileX: number, profileY: number, profileImageSize: number, img: HTMLImageElement | null) {
-  if (!img) {
-    // Fallback: círculo cinza se não tiver imagem
-    ctx.fillStyle = '#E0E0E0';
-    ctx.beginPath();
-    ctx.arc(profileX + profileImageSize / 2, profileY + profileImageSize / 2, profileImageSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-    return;
-  }
-
-  try {
-    // Desenhar imagem com clipping circular
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(profileX + profileImageSize / 2, profileY + profileImageSize / 2, profileImageSize / 2, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.drawImage(img, profileX, profileY, profileImageSize, profileImageSize);
-    ctx.restore();
-  } catch (e) {
-    console.error('Erro ao desenhar imagem de perfil:', e);
-    // Fallback: círculo cinza
-    ctx.fillStyle = '#E0E0E0';
-    ctx.beginPath();
-    ctx.arc(profileX + profileImageSize / 2, profileY + profileImageSize / 2, profileImageSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
 }
 
 async function createTweetCardCanvasSyncWithImages(card: CarouselCard, profileImg: HTMLImageElement | null = null): Promise<HTMLCanvasElement> {
@@ -767,6 +755,7 @@ function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boole
 }
 
 async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCtaSlide: boolean): Promise<HTMLCanvasElement> {
+  const brandProfile = getVanderBrandProfile();
   let cardImg: HTMLImageElement | null = null;
   let logoImg: HTMLImageElement | null = null;
   let profileImg: HTMLImageElement | null = null;
@@ -781,14 +770,13 @@ async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCta
   // Logo (apenas para CTA/último slide)
   if (isCtaSlide) {
     logoImg = await Promise.race([
-      loadImage('/vm-mark.png').catch(() => null),
+      loadImage(brandProfile.markImageUrl || '/vm-mark.png').catch(() => null),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
     ]);
   }
 
-  if (!isCtaSlide) {
-    const profileUrl =
-      'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
+  if (!isCtaSlide && brandProfile.profileImageUrl) {
+    const profileUrl = brandProfile.profileImageUrl;
     profileImg = await Promise.race([
       loadImage(profileUrl).catch(() => null),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
@@ -805,6 +793,7 @@ function createTweetExpandedCardCanvasSyncInternal(
   logoImg: HTMLImageElement | null,
   profileImg: HTMLImageElement | null
 ): HTMLCanvasElement {
+  const brandProfile = getVanderBrandProfile();
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('Canvas context not available');
@@ -847,11 +836,11 @@ function createTweetExpandedCardCanvasSyncInternal(
     ctx.textBaseline = 'top';
     ctx.font = '700 14px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = '#F4F0E8';
-    ctx.fillText('Vander Maria', avatarX + avatarSize + 14, avatarY + 4);
+    ctx.fillText(brandProfile.displayName, avatarX + avatarSize + 14, avatarY + 4);
 
     ctx.font = '400 12px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = '#888888';
-    ctx.fillText('@vandermarias', avatarX + avatarSize + 14, avatarY + 24);
+    ctx.fillText(brandProfile.handle, avatarX + avatarSize + 14, avatarY + 24);
   }
 
   // Footer fixo
@@ -867,9 +856,9 @@ function createTweetExpandedCardCanvasSyncInternal(
   ctx.fillStyle = '#666666';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText('Vander Maria', paddingX, footerY + 10);
+  ctx.fillText(brandProfile.displayName, paddingX, footerY + 10);
   ctx.textAlign = 'right';
-  ctx.fillText('@vandermarias', canvas.width - paddingX, footerY + 10);
+  ctx.fillText(brandProfile.handle, canvas.width - paddingX, footerY + 10);
 
   // Conteúdo
   const contentTop = paddingY + headerHeight + (isCtaSlide ? 0 : 20);
@@ -960,7 +949,7 @@ function createTweetExpandedCardCanvasSyncInternal(
     ctx.font = '600 28px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = '#F4F0E8';
     const ctaText = (card.text || '').trim() || 'Quer o próximo passo?';
-    const lines = wrapTextForCanvas(ctx, ctaText, contentWidth, 28);
+    const lines = wrapTextForCanvas(ctx, ctaText, contentWidth);
     let y = monoY + 80;
     for (const line of lines) {
       ctx.fillText(line, canvas.width / 2, y);

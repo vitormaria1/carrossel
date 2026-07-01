@@ -5,7 +5,6 @@ import { TemplateSelector } from './components/TemplateSelector';
 import { TemplateViewport } from './components/TemplateViewport';
 import { UserContextForm } from './components/UserContextForm';
 import { PublishButton } from './components/PublishButton';
-import { ScheduledPostsPanel } from './components/ScheduledPostsPanel';
 import { useCarouselStore, type CarouselCard } from '@/lib/store';
 import { useUserContext } from '@/lib/user-context';
 import { useEffect, useState } from 'react';
@@ -26,7 +25,6 @@ export default function HomeClient() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'create' | 'scheduled'>('create');
   const {
     idea,
     prompt,
@@ -128,13 +126,13 @@ export default function HomeClient() {
           text?: string;
           headline?: string;
           cta?: string;
+          colors?: { bg: string; text: string; accent?: string };
         }>;
         caption?: string;
       };
 
       if (data.cards) {
         const cards = data.cards.map((card, idx) => {
-          const colors = { bg: '#FFFFFF', text: '#0C1014' };
           return {
             id: `card-${idx}`,
             text: card.text || '',
@@ -142,7 +140,10 @@ export default function HomeClient() {
             cta: card.cta,
             caption: idx === 0 ? data.caption : undefined,
             imageType: 'html' as const,
-            colors,
+            colors:
+              'colors' in card && card.colors && typeof card.colors === 'object'
+                ? (card.colors as { bg: string; text: string; accent?: string })
+                : { bg: '#FFFFFF', text: '#0C1014' },
             order: idx,
             carouselTemplate: carouselTemplate,
           };
@@ -222,72 +223,37 @@ export default function HomeClient() {
 
       <TemplateSelector />
 
-      <div className="px-6 pt-6">
-        <div className="inline-flex rounded-2xl border border-gray-200 bg-white p-1 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setActiveTab('create')}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-              activeTab === 'create'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Criar
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('scheduled')}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-              activeTab === 'scheduled'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Agendados
-          </button>
-        </div>
-      </div>
-
       <div className="flex min-h-[calc(100vh-280px)] gap-8 px-6 py-8">
-        {activeTab === 'create' ? (
-          <>
-            <div className="w-auto flex-shrink-0">
-              <div className="sticky top-8 w-80 space-y-4">
-                <UserContextForm />
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                    <h3 className="text-white font-bold text-lg">Criar Carrossel</h3>
-                    <p className="mt-1 text-xs text-blue-100">
-                      {carouselTemplate === 'vanderMaria'
-                        ? 'Fluxo premium com 5 slides e renderização cinemática.'
-                        : 'Defina o briefing e gere uma versão pronta para editar e exportar.'}
-                    </p>
-                  </div>
-                  <div className="p-6 max-h-96 overflow-y-auto space-y-4">
-                    <InputForm onGenerate={handleGenerate} isLoading={isLoading} />
-                    <PublishButton />
-                  </div>
-                </div>
+        <div className="w-auto flex-shrink-0">
+          <div className="sticky top-8 w-80 space-y-4">
+            <UserContextForm />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <h3 className="text-white font-bold text-lg">Criar Carrossel</h3>
+                <p className="mt-1 text-xs text-blue-100">
+                  {carouselTemplate === 'vanderMaria'
+                    ? 'Fluxo premium com 5 slides e renderização cinemática.'
+                    : 'Defina o briefing e gere uma versão pronta para editar e exportar.'}
+                </p>
+              </div>
+              <div className="p-6 max-h-96 overflow-y-auto space-y-4">
+                <InputForm onGenerate={handleGenerate} isLoading={isLoading} />
+                <PublishButton />
               </div>
             </div>
-            <div className="flex-1 min-w-0 overflow-hidden">
-              {isHydrated ? (
-                <TemplateViewport />
-              ) : (
-                <div className="flex h-full min-h-[32rem] items-center justify-center rounded-xl border border-gray-200 bg-white">
-                  <div className="text-center text-sm text-gray-500">
-                    Restaurando carrossel salvo...
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 min-w-0">
-            <ScheduledPostsPanel />
           </div>
-        )}
+        </div>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          {isHydrated ? (
+            <TemplateViewport />
+          ) : (
+            <div className="flex h-full min-h-[32rem] items-center justify-center rounded-xl border border-gray-200 bg-white">
+              <div className="text-center text-sm text-gray-500">
+                Restaurando carrossel salvo...
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <footer className="border-t border-gray-200 bg-gray-50 py-8">

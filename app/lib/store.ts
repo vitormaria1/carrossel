@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { generateCardBase64 } from './export';
 
 export interface CarouselCard {
   id: string;
@@ -32,8 +31,6 @@ export interface CarouselState {
   idea: string;
   prompt: string;
   postCaption: string;
-  publishMode: 'now' | 'scheduled';
-  scheduledFor: string;
   instagramAccountId: string;
   cards: CarouselCard[];
   totalCards: number;
@@ -49,8 +46,6 @@ export interface CarouselState {
   setIdea: (idea: string) => void;
   setPrompt: (prompt: string) => void;
   setPostCaption: (caption: string) => void;
-  setPublishMode: (mode: 'now' | 'scheduled') => void;
-  setScheduledFor: (scheduledFor: string) => void;
   setInstagramAccountId: (instagramAccountId: string) => void;
   setCards: (cards: CarouselCard[]) => void;
   setTotalCards: (total: number) => void;
@@ -111,8 +106,6 @@ export const useCarouselStore = create<CarouselState>()(
       idea: '',
       prompt: '',
       postCaption: '',
-      publishMode: 'now',
-      scheduledFor: '',
       instagramAccountId: '',
       cards: [],
       cardsStandard: [],
@@ -128,8 +121,6 @@ export const useCarouselStore = create<CarouselState>()(
       setIdea: (idea) => set({ idea }),
       setPrompt: (prompt) => set({ prompt }),
       setPostCaption: (postCaption) => set({ postCaption }),
-      setPublishMode: (publishMode) => set({ publishMode }),
-      setScheduledFor: (scheduledFor) => set({ scheduledFor }),
       setInstagramAccountId: (instagramAccountId) => set({ instagramAccountId }),
       setCards: (cards) => set((state) => patchTemplateBuckets(state, detectTemplate(cards), cards)),
       setTotalCards: (total) => set({ totalCards: total }),
@@ -199,8 +190,6 @@ export const useCarouselStore = create<CarouselState>()(
         idea: state.idea,
         prompt: state.prompt,
         postCaption: state.postCaption,
-        publishMode: state.publishMode,
-        scheduledFor: state.scheduledFor,
         instagramAccountId: state.instagramAccountId,
         cards: state.cards,
         totalCards: state.totalCards,
