@@ -1,6 +1,5 @@
-import HomeClient from './home-client';
+import CentralClient from './central-client';
 
 export default function Page() {
-  return <HomeClient />;
+  return <CentralClient />;
 }
-

@@ -11,6 +11,7 @@ import { useUserContext } from '@/lib/user-context';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateVanderMariaCarousel } from '@/lib/vander-maria';
+import Link from 'next/link';
 
 type VanderMariaStoreCard = CarouselCard & {
   textInScreen: string;
@@ -172,6 +173,9 @@ export default function HomeClient() {
         <div className="px-6 py-8">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.34em] text-gray-500">
+                CONSULTÓRIO
+              </p>
               <h1 className="text-4xl font-black tracking-tight text-white">
                 carrossel<span className="text-blue-500">.</span>ai
               </h1>
@@ -185,6 +189,12 @@ export default function HomeClient() {
                 <StatPill label="Cards" value={String(cards.length || totalCards)} />
                 <StatPill label="Objetivo" value={objective} />
               </div>
+              <Link
+                href="/"
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Central
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}
