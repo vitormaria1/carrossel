@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_COOKIE_NAME, isAuthenticatedSession } from './lib/auth';
 
-export const runtime = 'edge';
-
 const PUBLIC_API_PATHS = ['/api/auth/login', '/api/auth/logout'];
 
 function isStaticAsset(pathname: string) {
@@ -15,7 +13,7 @@ function isStaticAsset(pathname: string) {
   );
 }
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const session = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const isAuthed = isAuthenticatedSession(session);
