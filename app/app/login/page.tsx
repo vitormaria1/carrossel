@@ -1,9 +1,10 @@
 import LoginForm from './login-form';
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { next?: string };
+  searchParams?: Promise<{ next?: string }>;
 }) {
-  return <LoginForm nextPath={searchParams?.next || '/'} />;
+  const resolvedSearchParams = await searchParams;
+  return <LoginForm nextPath={resolvedSearchParams?.next || '/'} />;
 }

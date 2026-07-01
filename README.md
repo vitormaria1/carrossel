@@ -1,102 +1,68 @@
-# 🎡 Carrossel App - Gerador de Carrosséis Instagram
+# Carrossel App
 
-Aplicação para criação de carrosséis de alta conversão para Instagram, modelada na inteligência narrativa, design visual e posicionamento do @soudaviribas.
+Aplicacao para criar, editar, exportar, publicar e agendar carrosseis de Instagram.
 
-## 🚀 Início Rápido
+O produto ativo deste repositorio e um app em Next.js localizado em [app](./app). Os arquivos Python na raiz sao legado e nao representam o fluxo principal atual.
 
-### 1. Instalar dependências
+## Estrutura
+
+- `app/`: aplicacao principal em Next.js
+- `app/app/home-client.tsx`: shell principal da interface
+- `app/app/api/*`: geracao, upload, publicacao e agendamento
+- `app/lib/*`: estado global, integracoes e servicos
+- `.github/workflows/process-scheduled-posts.yml`: processamento de agendamentos
+
+## Inicio rapido
+
+1. Instale as dependencias:
+
 ```bash
-pip3 install -r requirements-carousel.txt
+cd app
+npm install
 ```
 
-### 2. Configurar API Key
+2. Configure as variaveis locais em `app/.env.local`.
+
+Variaveis principais:
+
+- `ANTHROPIC_API_KEY`: geracao de copy
+- `INSTAGRAM_ACCESS_TOKEN`: token da conta do Instagram
+- `INSTAGRAM_BUSINESS_ACCOUNT_ID`: conta profissional usada na publicacao
+- `N8N_WEBHOOK_URL`: webhook para hospedar as imagens publicas
+- `BLOB_READ_WRITE_TOKEN`: necessario para agendamentos
+- `VANDER_GEMINI_API_KEY`: necessario para o template `vanderMaria`
+
+3. Rode o app:
+
 ```bash
-# Crie um arquivo .env na raiz do projeto
-echo "ANTHROPIC_API_KEY=sk-ant-sua-chave-aqui" > .env
+cd app
+npm run dev
 ```
 
-### 3. Iniciar aplicação web
-```bash
-python3 app_web.py
+4. Abra no navegador:
+
+```txt
+http://localhost:3000
 ```
 
-### 4. Abrir no navegador
-```
-http://localhost:5000
-```
+## Fluxo principal
 
----
+1. Fazer login
+2. Escolher um template: `standard`, `tweet`, `tweetExpanded` ou `vanderMaria`
+3. Preencher ideia e contexto
+4. Opcionalmente enviar documentos para enriquecer o briefing
+5. Gerar os cards
+6. Editar, exportar, publicar agora ou agendar
 
-## 📋 Como Usar
+## Observacoes
 
-1. **Preencha os campos:**
-   - Tópico/Oferta (obrigatório)
-   - Público-alvo (obrigatório)
-   - Tom (opcional - casual, profissional, urgente, motivacional, autêntico)
-   - Tipo de Carrossel (opcional - transformação, autoridade, ideológico, educacional, vendas)
-   - Contexto Adicional (opcional)
+- O template `vanderMaria` trabalha com 5 slides fixos.
+- Quando ha documentos enviados, o app usa `/api/generate` para incluir os arquivos no contexto.
+- Sem `ANTHROPIC_API_KEY`, parte da geracao cai em fallback/mock.
+- A publicacao depende do token do Instagram e do webhook do `n8n`.
+- O agendamento salva posts no Vercel Blob e pode ser processado pelo workflow do GitHub Actions.
 
-2. **Clique em "✨ Gerar Carrossel"**
-   - Claude IA gera o carrossel completo
+## Documentacao adicional
 
-3. **Refine se necessário:**
-   - Digite feedback (ex: "Adicione mais urgência")
-   - Clique em "Refinar"
-
-4. **Baixe:**
-   - Clique em "💾 Baixar"
-   - Arquivo .md é salvo no computador
-
----
-
-## 📚 Arquivos Principais
-
-- `app_web.py` - Aplicação web (Flask)
-- `carousel_copy_generator.py` - Gerador de carrosséis (Core)
-- `carousel_agent_managed.py` - Modo Managed Agents (avançado)
-- `templates/index.html` - Interface web
-- `requirements-carousel.txt` - Dependências Python
-- `.env` - Configuração (API Key)
-
----
-
-## 📐 5 Tipos de Carrosséis
-
-1. **Transformação** (5-7 slides) - Hook → Problema → Solução → Resultado → CTA
-2. **Autoridade** (3-5 slides) - Expertise → Conhecimento → Convite → CTA
-3. **Ideológico** (6-8 slides) - Manifesto → Princípios → Exemplos → Comunidade → CTA
-4. **Educacional** (5-7 slides) - Conceito → Desenvolvimento → Aplicação → Resultado
-5. **Vendas** (5-6 slides) - Problema → Agonia → Solução → Prova → CTA
-
----
-
-## ✨ Princípios @soudaviribas
-
-- ✓ Minimalismo Funcional
-- ✓ Acessibilidade 100%
-- ✓ Narrativa Clara
-- ✓ Transformação como Promessa
-- ✓ Autoridade + Ação
-
----
-
-## 🛠 Stack
-
-- **Backend:** Flask + Python 3.9+
-- **IA:** Claude API (Anthropic SDK)
-- **Frontend:** HTML + CSS + JavaScript
-- **Otimização:** Prompt Caching (90% economia em refinamentos)
-
----
-
-## 📞 Suporte
-
-Para problemas com a API Key:
-1. Verifique se está em https://console.anthropic.com
-2. Confirme status "Active" (verde)
-3. Verifique saldo de créditos
-4. Crie uma nova chave se necessário
-
----
-
-**Pronto para começar? Abra http://localhost:5000** 🚀
+- [app/README.md](./app/README.md): detalhes da aplicacao Next.js
+- [DEPLOY.md](./DEPLOY.md): observacoes de deploy
