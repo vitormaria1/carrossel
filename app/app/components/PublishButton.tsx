@@ -183,7 +183,7 @@ export function PublishButton() {
           <select
             value={instagramAccountId || instagramAccounts[0]?.id || ''}
             onChange={(event) => setInstagramAccountId(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
             disabled={instagramAccounts.length === 0}
           >
             {instagramAccounts.length === 0 ? (

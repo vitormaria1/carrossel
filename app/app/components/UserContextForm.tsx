@@ -63,7 +63,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
             value={expertise}
             onChange={(e) => setExpertise(e.target.value, yearsExperience, mainAchievement)}
             placeholder="Ex: Marketing Digital, Design Gráfico, Vendas"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxLength={100}
           />
           <p className="text-xs text-gray-500 mt-1">{expertise.length}/100</p>
@@ -77,7 +77,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
             onChange={(e) => setExpertise(expertise, parseInt(e.target.value) || 0, mainAchievement)}
             min="0"
             max="50"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -88,7 +88,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
             value={mainAchievement}
             onChange={(e) => setExpertise(expertise, yearsExperience, e.target.value)}
             placeholder="Ex: Gerou $500k em vendas | Treinou 1000+ alunos"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxLength={100}
           />
         </div>
@@ -107,7 +107,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
               setProduct(e.target.value, productDescription, uniqueDifferential, problemSolves, productPrice)
             }
             placeholder="Ex: Curso de Copywriting, Serviço de Consultoria"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxLength={100}
           />
         </div>
@@ -120,7 +120,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
               setProduct(productName, e.target.value, uniqueDifferential, problemSolves, productPrice)
             }
             placeholder="O que é, para quem é"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent h-16 resize-none"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent h-16 resize-none"
             maxLength={200}
           />
         </div>
@@ -134,7 +134,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
               setProduct(productName, productDescription, e.target.value, problemSolves, productPrice)
             }
             placeholder="Ex: 1-on-1 personalizado, Garantia de 30 dias"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxLength={150}
           />
         </div>
@@ -148,7 +148,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
               setProduct(productName, productDescription, uniqueDifferential, e.target.value, productPrice)
             }
             placeholder="Ex: Dificuldade em vender online, Falta de liderança"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxLength={150}
           />
         </div>
@@ -183,7 +183,7 @@ export function UserContextForm({ onComplete }: UserContextFormProps) {
             value={audiencePainPoints}
             onChange={(e) => setAudience(targetAudience, e.target.value)}
             placeholder="Ex: Falta de tempo, Medo de começar, Sem dinheiro"
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent h-12 resize-none"
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent h-12 resize-none"
             maxLength={150}
           />
         </div>

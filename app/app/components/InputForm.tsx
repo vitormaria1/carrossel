@@ -123,7 +123,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
           onChange={(e) => handleIdeaChange(e.target.value)}
           placeholder="Cole aqui o conceito, artigo ou ideia que quer transformar em carrossel..."
           maxLength={MAX_IDEA_LENGTH}
-          className={`w-full p-4 border rounded-lg resize-none h-24 text-sm focus:outline-none focus:ring-2 focus:border-transparent bg-white transition ${
+          className={`w-full p-4 border rounded-lg resize-none h-24 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent bg-white transition ${
             error && !idea ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-600'
           }`}
         />
@@ -154,7 +154,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
           }}
           placeholder="Ex: Tom mais agressivo | Foco em vendas | Narrativa educacional"
           maxLength={MAX_PROMPT_LENGTH}
-          className="w-full p-4 border border-gray-300 rounded-lg resize-none h-16 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white transition"
+          className="w-full p-4 border border-gray-300 rounded-lg resize-none h-16 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white transition"
         />
         <p className="text-xs text-gray-500 mt-1">{prompt.length}/{MAX_PROMPT_LENGTH} caracteres</p>
       </div>
@@ -172,7 +172,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
           }}
           placeholder="Escreva aqui a legenda que vai acompanhar o carrossel no Instagram..."
           maxLength={MAX_CAPTION_LENGTH}
-          className="w-full p-4 border border-gray-300 rounded-lg resize-none h-28 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white transition"
+          className="w-full p-4 border border-gray-300 rounded-lg resize-none h-28 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white transition"
         />
         <p className="text-xs text-gray-500 mt-1">{postCaption.length}/{MAX_CAPTION_LENGTH} caracteres</p>
       </div>
