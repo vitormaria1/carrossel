@@ -10,6 +10,7 @@ Aplicacao Next.js para gerar, editar, exportar e publicar carrosseis de Instagra
 4. Gere os cards
 5. Edite e exporte os cards
 6. Publique agora
+7. Acesse `Financeiro` para abrir a central integrada do ecossistema
 
 ## Scripts
 
@@ -35,6 +36,7 @@ npm run build
 - A publicacao depende de `INSTAGRAM_ACCESS_TOKEN` e do webhook configurado em `n8n`.
 - No estado atual do codigo, a implementacao ativa usa uma conta principal por meio de `INSTAGRAM_ACCESS_TOKEN`, com label opcional via `INSTAGRAM_ACCOUNT_LABEL`.
 - O template `vanderMaria` tambem depende de `VANDER_GEMINI_API_KEY`.
+- A area `Financeiro` usa `DATABASE_URL` e expõe rotas em `/financeiro` e `/financeiro/[area]`.
 - Gatilhos externos podem usar `POST /api/external/publish` com `Authorization: Bearer <N8N_TRIGGER_SECRET>` ou header `x-api-key`.
 
 ## Configuração necessária
@@ -43,3 +45,4 @@ npm run build
 2. Configure `N8N_WEBHOOK_URL` para o upload das imagens publicas antes da publicacao.
 3. Configure `N8N_TRIGGER_SECRET` se quiser disparar publicacoes externamente via n8n.
 4. Configure `VANDER_GEMINI_API_KEY` se for usar o template `vanderMaria`.
+5. Configure `DATABASE_URL` para habilitar o Financeiro integrado.

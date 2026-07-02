@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const ECOSYSTEM_CARDS = [
+const ORBIT_CARDS = [
   {
     title: 'CASA',
     href: null,
@@ -27,6 +27,16 @@ const ECOSYSTEM_CARDS = [
     href: null,
     description: 'Em breve',
     orbitClassName: 'orbit-card orbit-card-left',
+  },
+] as const;
+
+const DASHBOARD_CARDS = [
+  ...ORBIT_CARDS,
+  {
+    title: 'FINANCEIRO',
+    href: '/financeiro',
+    description: 'Central integrada',
+    orbitClassName: 'orbit-card orbit-card-top',
   },
 ] as const;
 
@@ -88,7 +98,7 @@ export default function CentralClient() {
               </div>
 
               <div className="orbit-track">
-                {ECOSYSTEM_CARDS.map((card) =>
+                {ORBIT_CARDS.map((card) =>
                   card.href ? (
                     <Link key={card.title} href={card.href} className={card.orbitClassName}>
                       <div className="orbit-card__inner">
@@ -112,8 +122,8 @@ export default function CentralClient() {
               </div>
             </div>
 
-            <div className="grid w-full max-w-5xl gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {ECOSYSTEM_CARDS.map((card) =>
+            <div className="grid w-full max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {DASHBOARD_CARDS.map((card) =>
                 card.href ? (
                   <Link
                     key={card.title}
