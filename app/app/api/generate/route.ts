@@ -1,6 +1,11 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
-import { generateNarrativeContent, detectCarouselType, getDesignColors } from '@/lib/davi-narrative';
+import {
+  generateNarrativeContent,
+  detectCarouselType,
+  getDesignColors,
+  type CarouselType,
+} from '@/lib/davi-narrative';
 
 function getAnthropicClient() {
   return new Anthropic();
@@ -11,7 +16,7 @@ interface GenerateRequest {
   prompt: string;
   totalCards: number;
   docIds?: string[];
-  carouselType?: string;
+  carouselType?: CarouselType | 'auto';
   carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
   // User context
   expertise?: string;
@@ -41,7 +46,7 @@ export async function POST(req: NextRequest) {
       carouselTemplate,
     } = (await req.json()) as GenerateRequest;
 
-    const resolvedCarouselType = carouselType && carouselType !== 'auto'
+    const resolvedCarouselType: CarouselType = carouselType && carouselType !== 'auto'
       ? carouselType
       : detectCarouselType(idea);
     const colors = getDesignColors(resolvedCarouselType);
