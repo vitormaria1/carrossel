@@ -1,14 +1,29 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useCarouselStore } from '@/lib/store';
+import { useCarouselStore, type CarouselCard } from '@/lib/store';
 import { generateCardBase64 } from '@/lib/export';
-import { renderVanderMariaCardToBase64 } from '@/lib/vander-maria';
+import {
+  renderVanderMariaCardToBase64,
+  type VanderMariaCard,
+} from '@/lib/vander-maria';
 
 interface InstagramAccountSummary {
   id: string;
   label: string;
   isDefault: boolean;
+}
+
+type VanderMariaPublishCard = CarouselCard & VanderMariaCard;
+
+function isVanderMariaCard(card: CarouselCard): card is VanderMariaPublishCard {
+  return (
+    card.carouselTemplate === 'vanderMaria' &&
+    'slideType' in card &&
+    typeof (card as VanderMariaPublishCard).slideType === 'number' &&
+    'textInScreen' in card &&
+    typeof (card as VanderMariaPublishCard).textInScreen === 'string'
+  );
 }
 
 export function PublishButton() {
@@ -94,12 +109,17 @@ export function PublishButton() {
       for (let index = 0; index < cards.length; index += 1) {
         setProgress({ current: index + 1, total: cards.length });
 
-        const cardTemplate = cards[index].carouselTemplate || template;
+        const currentCard = cards[index];
+        const cardTemplate = currentCard.carouselTemplate || template;
         const base64 =
           cardTemplate === 'vanderMaria'
-            ? await renderVanderMariaCardToBase64(cards[index])
+            ? isVanderMariaCard(currentCard)
+              ? await renderVanderMariaCardToBase64(currentCard)
+              : (() => {
+                  throw new Error(`Card ${index + 1} não está no formato Vander Maria esperado`);
+                })()
             : await generateCardBase64(
-                cards[index],
+                currentCard,
                 cardTemplate as 'standard' | 'tweet' | 'tweetExpanded'
               );
 
