@@ -3,9 +3,17 @@
   "name": "carrossel",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-01",
+  "workers_dev": false,
+  "keep_vars": true,
   "compatibility_flags": [
     "nodejs_compat",
     "global_fetch_strictly_public"
+  ],
+  "routes": [
+    {
+      "pattern": "carrossel.varinteligencia.com",
+      "zone_name": "varinteligencia.com"
+    }
   ],
   "assets": {
     "binding": "ASSETS",
