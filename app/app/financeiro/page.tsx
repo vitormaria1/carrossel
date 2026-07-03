@@ -2,6 +2,7 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { loadFinanceOverview } from "@/lib/finance-system";
 import { financeAreaMeta } from "@/lib/finance-meta";
+import { isFinanceDatabaseConfigured } from "@/lib/finance-env";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(amount);
@@ -14,19 +15,28 @@ function formatDate(value: string) {
 export default async function FinanceiroPage() {
   noStore();
 
-  const overview = await loadFinanceOverview();
+  if (!isFinanceDatabaseConfigured()) {
+    return <FinanceUnavailablePage />;
+  }
 
+  let overview;
+  try {
+    overview = await loadFinanceOverview();
+  } catch {
+    return <FinanceUnavailablePage />;
+  }
+
+  return <FinanceOverviewView overview={overview} />;
+}
+
+function FinanceOverviewView({ overview }: { overview: Awaited<ReturnType<typeof loadFinanceOverview>> }) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(139,156,255,0.18),transparent_28%),radial-gradient(circle_at_top_right,rgba(77,212,198,0.14),transparent_24%),linear-gradient(180deg,#050b14_0%,#08111f_52%,#050b14_100%)] text-slate-100">
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-6 py-8 md:px-10">
         <header className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.32)] backdrop-blur-xl md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.34em] text-slate-400">
-              Central integrada
-            </p>
-            <h1 className="mt-3 font-mono text-4xl font-black tracking-[-0.06em] md:text-5xl">
-              Financeiro
-            </h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.34em] text-slate-400">Central integrada</p>
+            <h1 className="mt-3 font-mono text-4xl font-black tracking-[-0.06em] md:text-5xl">Financeiro</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 md:text-base">
               Hub unificado para caixa, recorrencias, reservas e historico do ecossistema.
             </p>
@@ -53,12 +63,8 @@ export default async function FinanceiroPage() {
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
-                  Areas
-                </p>
-                <h2 className="mt-2 font-mono text-2xl font-black tracking-[-0.04em]">
-                  Acesso rapido
-                </h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Areas</p>
+                <h2 className="mt-2 font-mono text-2xl font-black tracking-[-0.04em]">Acesso rapido</h2>
               </div>
             </div>
 
@@ -72,12 +78,8 @@ export default async function FinanceiroPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
                     {area.meta.accent}
                   </p>
-                  <h3 className="mt-3 text-2xl font-black tracking-[-0.04em] text-white">
-                    {area.meta.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
-                    {area.meta.description}
-                  </p>
+                  <h3 className="mt-3 text-2xl font-black tracking-[-0.04em] text-white">{area.meta.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{area.meta.description}</p>
                   <div className="mt-4 flex items-center justify-between text-sm text-slate-300">
                     <span>{formatCurrency(area.balance.currentBalance)}</span>
                     <span className="transition group-hover:text-white">Abrir</span>
@@ -89,12 +91,8 @@ export default async function FinanceiroPage() {
 
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
-                Historico recente
-              </p>
-              <h2 className="mt-2 font-mono text-2xl font-black tracking-[-0.04em]">
-                Movimentos
-              </h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Historico recente</p>
+              <h2 className="mt-2 font-mono text-2xl font-black tracking-[-0.04em]">Movimentos</h2>
             </div>
 
             <div className="mt-6 space-y-3">
@@ -131,12 +129,8 @@ export default async function FinanceiroPage() {
         <section className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
-                Proximos pontos
-              </p>
-              <h2 className="mt-2 font-mono text-2xl font-black tracking-[-0.04em]">
-                Itens recentes
-              </h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Proximos pontos</p>
+              <h2 className="mt-2 font-mono text-2xl font-black tracking-[-0.04em]">Itens recentes</h2>
             </div>
           </div>
 
@@ -157,6 +151,30 @@ export default async function FinanceiroPage() {
                 </article>
               ))
             )}
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function FinanceUnavailablePage() {
+  return (
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(139,156,255,0.18),transparent_28%),radial-gradient(circle_at_top_right,rgba(77,212,198,0.14),transparent_24%),linear-gradient(180deg,#050b14_0%,#08111f_52%,#050b14_100%)] text-slate-100">
+      <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center px-6 py-12">
+        <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.34em] text-slate-400">Financeiro</p>
+          <h1 className="mt-3 font-mono text-4xl font-black tracking-[-0.06em]">Banco nao configurado</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
+            Esta area depende de `DATABASE_URL`. Quando a variavel estiver configurada, o hub financeiro abre normalmente.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/"
+              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-200 transition hover:bg-white/10"
+            >
+              Voltar para a central
+            </Link>
           </div>
         </section>
       </div>

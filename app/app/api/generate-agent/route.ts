@@ -3,7 +3,7 @@ import {
   generateCarouselWithAgent,
   generateCarouselFallback,
 } from "@/lib/managed-agent";
-import { getDesignColors } from "@/lib/davi-narrative";
+import { getDesignColors, type CarouselType } from "@/lib/davi-narrative";
 
 interface GenerateRequest {
   idea: string;
@@ -72,7 +72,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Determinar tipo de carrossel e cores
-    const detectedCarouselType = (carouselType as any) || detectCarouselTypeFromIdea(idea);
+    const detectedCarouselType: CarouselType = carouselType && carouselType !== 'auto'
+      ? (carouselType as CarouselType)
+      : detectCarouselTypeFromIdea(idea);
     const colors = getDesignColors(detectedCarouselType);
 
     // Enriquecer cards com metadados de design

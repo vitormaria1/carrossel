@@ -168,7 +168,8 @@ Retorne APENAS um JSON válido (sem markdown ou explicações):
     }
 
     const response = await getAnthropicClient().messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      // Modelo que está respondendo corretamente no ambiente atual.
+      model: 'claude-opus-4-6',
       max_tokens: 2000,
       messages: messages as never,
       system: systemPrompt,
