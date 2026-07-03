@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "carrossel",
+  "name": "carrossel1",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-01",
   "workers_dev": false,
@@ -22,7 +22,7 @@
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "carrossel"
+      "service": "carrossel1"
     }
   ]
 }
