@@ -12,9 +12,9 @@ function normalizeHandle(handle: string) {
 
 export function getTweetBrandProfile(): BrandProfile {
   return {
-    displayName: process.env.NEXT_PUBLIC_TWEET_PROFILE_NAME?.trim() || 'Seu Nome',
-    handle: normalizeHandle(process.env.NEXT_PUBLIC_TWEET_PROFILE_HANDLE?.trim() || '@seuusuario'),
-    profileImageUrl: process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL?.trim() || undefined,
+    displayName: process.env.NEXT_PUBLIC_TWEET_PROFILE_NAME?.trim() || 'Vitor Maria | Terapeuta',
+    handle: normalizeHandle(process.env.NEXT_PUBLIC_TWEET_PROFILE_HANDLE?.trim() || '@vitor_smaria'),
+    profileImageUrl: process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL?.trim() || '/profile.jpg',
   };
 }
 

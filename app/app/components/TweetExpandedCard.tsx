@@ -2,7 +2,7 @@
 
 import { CarouselCard, useCarouselStore } from '@/lib/store';
 import { useMemo, useRef, useState } from 'react';
-import { getVanderBrandProfile } from '@/lib/brand-profile';
+import { getTweetBrandProfile } from '@/lib/brand-profile';
 import Image, { type ImageLoaderProps } from 'next/image';
 
 interface TweetExpandedCardProps {
@@ -41,7 +41,7 @@ function renderHighlightedText(text: string) {
 }
 
 export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpandedCardProps) {
-  const brandProfile = getVanderBrandProfile();
+  const brandProfile = getTweetBrandProfile();
   const profileImageUrl = brandProfile.profileImageUrl || '/profile.jpg';
 
   const { updateCard } = useCarouselStore();
@@ -231,13 +231,12 @@ export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpand
                 <div className="flex justify-center">
                   <Image
                     loader={imagePassthroughLoader}
-                    src={brandProfile.markImageUrl || '/vm-mark.png'}
-                    alt="Logo"
-                    width={180}
+                    src={profileImageUrl}
+                    alt={brandProfile.displayName}
+                    width={72}
                     height={72}
                     unoptimized
-                    className="h-[72px] w-auto object-contain"
-                    style={{ filter: 'drop-shadow(0 0 0 rgba(0,0,0,0))' }}
+                    className="h-[72px] w-[72px] rounded-full object-cover"
                   />
                 </div>
 
