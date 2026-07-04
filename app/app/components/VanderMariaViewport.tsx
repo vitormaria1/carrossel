@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useCarouselStore } from '@/lib/store';
 import { VanderMariaFullscreenModal } from './VanderMariaFullscreenModal';
+import type { VanderMariaCard } from '@/lib/vander-maria';
 
 export function VanderMariaViewport() {
   const { cardsVanderMaria, isGenerating } = useCarouselStore();
@@ -13,6 +14,7 @@ export function VanderMariaViewport() {
     status: 'idle' | 'rendering' | 'complete' | 'error';
     error?: string;
   }>({ current: -1, total: 0, status: 'idle' });
+  const [previewWarning, setPreviewWarning] = useState<string>('');
   const [fullscreenCard, setFullscreenCard] = useState<{ index: number; imageUrl: string } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -22,6 +24,9 @@ export function VanderMariaViewport() {
       const { renderVanderMariaCardToBase64 } = await import('@/lib/vander-maria');
       const total = cardsVanderMaria.length;
 
+      setPreviewWarning('');
+      setPreviewImages({});
+
       setRenderingState({
         current: 0,
         total,
@@ -29,10 +34,10 @@ export function VanderMariaViewport() {
       });
 
       try {
-        // Renderizar todos em paralelo
-        const base64Array = await Promise.all(
+        // Renderizar todos em paralelo, mas sem derrubar a tela se alguns previews falharem
+        const results = await Promise.allSettled(
           cardsVanderMaria.map((card, i) =>
-            renderVanderMariaCardToBase64(card as any)
+            renderVanderMariaCardToBase64(card as unknown as VanderMariaCard)
               .then(base64 => {
                 setRenderingState(prev => ({ ...prev, current: i + 1 }));
                 return base64;
@@ -44,26 +49,30 @@ export function VanderMariaViewport() {
           )
         );
 
-        // Verificar se todos os cards foram renderizados com sucesso
-        const failedCount = base64Array.filter(b => !b).length;
-        if (failedCount > 0) {
-          setRenderingState({
-            current: total,
-            total,
-            status: 'error',
-            error: `${failedCount} card(s) falharam ao renderizar`,
-          });
-          return;
-        }
+        const base64Array = results.map((result) => {
+          if (result.status === 'fulfilled') {
+            return result.value;
+          }
+          return null;
+        });
 
         // Update previews
         const newPreviews: { [key: string]: string } = {};
+        let successCount = 0;
         base64Array.forEach((base64, i) => {
           if (base64) {
             newPreviews[cardsVanderMaria[i].id] = base64;
+            successCount += 1;
           }
         });
         setPreviewImages(newPreviews);
+
+        if (successCount < total) {
+          const failedCount = total - successCount;
+          setPreviewWarning(
+            `${failedCount} preview(s) não renderizaram. Os cards continuam disponíveis.`
+          );
+        }
 
         setRenderingState({
           current: total,
@@ -97,16 +106,6 @@ export function VanderMariaViewport() {
             {renderingState.current} de {renderingState.total} slides
           </p>
         )}
-      </div>
-    );
-  }
-
-  if (renderingState.status === 'error') {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 gap-4 bg-red-50 rounded-lg border border-red-300">
-        <div className="text-4xl">⚠️</div>
-        <p className="text-lg font-semibold text-red-900">Erro ao renderizar</p>
-        <p className="text-sm text-red-700">{renderingState.error}</p>
       </div>
     );
   }
@@ -156,6 +155,9 @@ export function VanderMariaViewport() {
         <div>
           <h2 className="text-xl font-bold">Vander Maria - 5 Slides Cinemáticos</h2>
           <p className="text-sm text-burgundy-100 mt-1">Carrossel pronto para publicar</p>
+          {previewWarning && (
+            <p className="mt-2 text-sm text-amber-200">{previewWarning}</p>
+          )}
         </div>
         {cardsVanderMaria.length > 0 && renderingState.status === 'complete' && (
           <button
@@ -194,7 +196,11 @@ export function VanderMariaViewport() {
 }
 
 interface VanderMariaCardThumbnailProps {
-  card: any;
+  card: {
+    id: string;
+    slideType?: number;
+    textInScreen?: string;
+  };
   index: number;
   previewImage?: string;
   onFullscreen?: () => void;
@@ -230,8 +236,8 @@ function VanderMariaCardThumbnail({
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300">
             <div className="text-center">
-              <div className="text-4xl mb-2">{typeEmojis[card.slideType]}</div>
-              <div className="text-sm">Type {card.slideType}</div>
+              <div className="text-4xl mb-2">{typeEmojis[card.slideType || 0] || '🎬'}</div>
+              <div className="text-sm">Type {card.slideType || '—'}</div>
             </div>
           </div>
         )}
@@ -251,7 +257,7 @@ function VanderMariaCardThumbnail({
 
       {/* Informações compactas */}
       <div className="flex-1 flex flex-col gap-2">
-        <p className="font-semibold text-gray-900 line-clamp-2 text-sm">{card.textInScreen}</p>
+        <p className="font-semibold text-gray-900 line-clamp-2 text-sm">{card.textInScreen || 'Prévia indisponível'}</p>
         <p className="text-gray-600 line-clamp-1 text-xs">
           {card.slideType === 1 && 'Cover'}
           {card.slideType === 2 && 'Supporting'}
