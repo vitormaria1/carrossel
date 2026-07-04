@@ -6,7 +6,11 @@ import {
 const GRAPH_API = 'https://graph.facebook.com/v20.0';
 
 function normalizeAccessToken(token: string): string {
-  return token.trim().replace(/^['"]|['"]$/g, '');
+  return token
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/^Bearer\s+/i, '')
+    .replace(/\s+/g, '');
 }
 
 export interface PublishSlide {
@@ -56,7 +60,13 @@ async function uploadImageToInstagram(
   });
 
   if (!response.ok) {
-    throw new Error(await readErrorResponse(response) || 'Falha ao fazer upload');
+    const errorMessage = await readErrorResponse(response) || 'Falha ao fazer upload';
+    if (/Invalid OAuth access token|Cannot parse access token|code":190/.test(errorMessage)) {
+      throw new Error(
+        'Token do Instagram inválido ou revogado. Gere um novo access token com permissões de publicação.'
+      );
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
@@ -79,7 +89,13 @@ async function createSingleImageContainer(
   });
 
   if (!response.ok) {
-    throw new Error(await readErrorResponse(response) || 'Falha ao criar post simples');
+    const errorMessage = await readErrorResponse(response) || 'Falha ao criar post simples';
+    if (/Invalid OAuth access token|Cannot parse access token|code":190/.test(errorMessage)) {
+      throw new Error(
+        'Token do Instagram inválido ou revogado. Gere um novo access token com permissões de publicação.'
+      );
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
@@ -102,7 +118,13 @@ async function createCarouselContainer(
   });
 
   if (!response.ok) {
-    throw new Error(await readErrorResponse(response) || 'Falha ao criar carrossel');
+    const errorMessage = await readErrorResponse(response) || 'Falha ao criar carrossel';
+    if (/Invalid OAuth access token|Cannot parse access token|code":190/.test(errorMessage)) {
+      throw new Error(
+        'Token do Instagram inválido ou revogado. Gere um novo access token com permissões de publicação.'
+      );
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
@@ -126,7 +148,13 @@ async function publishMedia(
   });
 
   if (!response.ok) {
-    throw new Error(await readErrorResponse(response) || 'Falha ao publicar');
+    const errorMessage = await readErrorResponse(response) || 'Falha ao publicar';
+    if (/Invalid OAuth access token|Cannot parse access token|code":190/.test(errorMessage)) {
+      throw new Error(
+        'Token do Instagram inválido ou revogado. Gere um novo access token com permissões de publicação.'
+      );
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();

@@ -4,7 +4,11 @@ const GRAPH_API = 'https://graph.facebook.com/v20.0';
 const INSTAGRAM_API = 'https://graph.instagram.com/v20.0';
 
 function normalizeAccessToken(token: string): string {
-  return token.trim().replace(/^['"]|['"]$/g, '');
+  return token
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/^Bearer\s+/i, '')
+    .replace(/\s+/g, '');
 }
 
 async function readBody(response: Response): Promise<string> {
