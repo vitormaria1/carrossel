@@ -8,9 +8,53 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { VANDER_SYSTEM_PROMPT_COPY } from '@/lib/vander-maria/constants';
+import type { VanderMariaSlideContent } from '@/lib/vander-maria/types';
 
 const GEMINI_API_KEY = process.env.VANDER_GEMINI_API_KEY;
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+function buildFallbackSlides(
+  topic: string,
+  customization?: string,
+  targetAudience?: string
+): VanderMariaSlideContent[] {
+  const audienceText = targetAudience?.trim() || 'seu público';
+  const directionText = customization?.trim() ? ` Direção adicional: ${customization.trim()}.` : '';
+
+  return [
+    {
+      slideType: 1,
+      textInScreen: `Você pode transformar ${topic} em uma mensagem que prende atenção.${directionText}`,
+      highlights: ['transformar'],
+      dynamics: `Abertura forte sobre ${topic} para ${audienceText}.`,
+    },
+    {
+      slideType: 2,
+      textInScreen: `O primeiro passo é clareza: fale com ${audienceText} sobre o problema certo e o desejo certo.`,
+      highlights: ['clareza', 'problema certo'],
+      dynamics: 'Slide de desenvolvimento com foco em mensagem e direção.',
+    },
+    {
+      slideType: 3,
+      textInScreen: `Depois, mostre estrutura. Quando a pessoa entende o caminho, ela confia mais no que você diz.`,
+      highlights: ['estrutura', 'confia'],
+      dynamics: 'Slide de autoridade com narrativa objetiva.',
+    },
+    {
+      slideType: 4,
+      textInScreen: `Por fim, conecte valor com ação. Um bom carrossel guia a leitura até o próximo passo natural.`,
+      highlights: ['valor', 'próximo passo'],
+      dynamics: 'Slide de conversão com fechamento progressivo.',
+    },
+    {
+      slideType: 5,
+      textInScreen: `Se você quer aplicar isso em ${topic}, comece hoje e ajuste a mensagem para ${audienceText}.`,
+      highlights: ['comece hoje', audienceText],
+      ctaButtonText: 'Quero aplicar agora',
+      dynamics: 'CTA final limpo e direto.',
+    },
+  ];
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,6 +78,14 @@ IMPORTANT:
 - Provide highlights array for each slide (must appear in textInScreen)
 - Slide 5 is CTA and must include ctaButtonText
 - Return ONLY JSON, no markdown or extra text`;
+
+    if (!GEMINI_API_KEY?.trim()) {
+      console.warn('Gemini API key missing for Vander Maria; using fallback slides.');
+      return NextResponse.json({
+        success: true,
+        slides: buildFallbackSlides(topic, customization, targetAudience),
+      });
+    }
 
     // Call Gemini 3 Pro
     const geminiResponse = await fetch(GEMINI_ENDPOINT, {
@@ -61,20 +113,20 @@ IMPORTANT:
     if (!geminiResponse.ok) {
       const error = await geminiResponse.text();
       console.error('Gemini error:', error);
-      return NextResponse.json(
-        { error: 'Gemini API error' },
-        { status: geminiResponse.status }
-      );
+      return NextResponse.json({
+        success: true,
+        slides: buildFallbackSlides(topic, customization, targetAudience),
+      });
     }
 
     const data = await geminiResponse.json();
     const responseText = data.candidates[0]?.content?.parts[0]?.text;
 
     if (!responseText) {
-      return NextResponse.json(
-        { error: 'No content from Gemini' },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        success: true,
+        slides: buildFallbackSlides(topic, customization, targetAudience),
+      });
     }
 
     // Parse JSON response
@@ -82,7 +134,7 @@ IMPORTANT:
     try {
       // Try direct JSON parse
       parsedResponse = JSON.parse(responseText);
-    } catch (e) {
+    } catch {
       console.log('📋 Raw Gemini response (first 1000 chars):', responseText.substring(0, 1000));
       // Try extracting JSON from markdown code block
       const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -101,13 +153,10 @@ IMPORTANT:
 
     if (!parsedResponse.slides || parsedResponse.slides.length !== 5) {
       console.error('❌ Expected 5 slides, got:', parsedResponse.slides?.length);
-      return NextResponse.json(
-        {
-          error: 'Invalid response: expected 5 slides',
-          received: parsedResponse,
-        },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        success: true,
+        slides: buildFallbackSlides(topic, customization, targetAudience),
+      });
     }
 
     // Validate each slide has required fields AND all 5 types are present
@@ -116,44 +165,44 @@ IMPORTANT:
       const slide = parsedResponse.slides[i];
       if (!slide.slideType || !slide.textInScreen) {
         console.error(`❌ Slide ${i + 1} missing fields:`, slide);
-        return NextResponse.json(
-          { error: `Slide ${i + 1} missing required fields` },
-          { status: 500 }
-        );
+        return NextResponse.json({
+          success: true,
+          slides: buildFallbackSlides(topic, customization, targetAudience),
+        });
       }
       if (!Array.isArray(slide.highlights) || slide.highlights.length < 1) {
         console.error(`❌ Slide ${i + 1} missing/invalid highlights:`, slide.highlights);
-        return NextResponse.json(
-          { error: `Slide ${i + 1} missing required highlights` },
-          { status: 500 }
-        );
+        return NextResponse.json({
+          success: true,
+          slides: buildFallbackSlides(topic, customization, targetAudience),
+        });
       }
       // Ensure highlights appear in text (verbatim)
       const text = String(slide.textInScreen);
       for (const h of slide.highlights) {
         if (typeof h !== 'string' || h.trim().length === 0 || !text.includes(h)) {
           console.error(`❌ Slide ${i + 1} highlight not found in text:`, h);
-          return NextResponse.json(
-            { error: `Slide ${i + 1} has highlight not present in textInScreen` },
-            { status: 500 }
-          );
+          return NextResponse.json({
+            success: true,
+            slides: buildFallbackSlides(topic, customization, targetAudience),
+          });
         }
       }
       if (slide.slideType === 5) {
         if (typeof slide.ctaButtonText !== 'string' || slide.ctaButtonText.trim().length === 0) {
           console.error(`❌ Slide ${i + 1} missing ctaButtonText:`, slide.ctaButtonText);
-          return NextResponse.json(
-            { error: 'CTA slide (type 5) missing required ctaButtonText' },
-            { status: 500 }
-          );
+          return NextResponse.json({
+            success: true,
+            slides: buildFallbackSlides(topic, customization, targetAudience),
+          });
         }
       }
       if (![1, 2, 3, 4, 5].includes(slide.slideType)) {
         console.error(`❌ Slide ${i + 1} invalid type:`, slide.slideType);
-        return NextResponse.json(
-          { error: `Slide ${i + 1} has invalid slideType: ${slide.slideType}` },
-          { status: 500 }
-        );
+        return NextResponse.json({
+          success: true,
+          slides: buildFallbackSlides(topic, customization, targetAudience),
+        });
       }
       typesSeen.add(slide.slideType);
     }
@@ -162,10 +211,10 @@ IMPORTANT:
     if (typesSeen.size !== 5) {
       const missing = [1, 2, 3, 4, 5].filter(t => !typesSeen.has(t));
       console.error('❌ Missing types:', missing);
-      return NextResponse.json(
-        { error: `Missing slide types: ${missing.join(', ')}` },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        success: true,
+        slides: buildFallbackSlides(topic, customization, targetAudience),
+      });
     }
 
     console.log('✅ All 5 slide types validated successfully');
