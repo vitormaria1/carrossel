@@ -185,21 +185,37 @@ export const useCarouselStore = create<CarouselState>()(
     }),
     {
       name: 'carousel-store',
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         idea: state.idea,
         prompt: state.prompt,
         postCaption: state.postCaption,
         instagramAccountId: state.instagramAccountId,
-        cards: state.cards,
         totalCards: state.totalCards,
         carouselTemplate: state.carouselTemplate,
         carouselType: state.carouselType,
-        cardsStandard: state.cardsStandard,
-        cardsTweet: state.cardsTweet,
-        cardsTweetExpanded: state.cardsTweetExpanded,
-        cardsVanderMaria: state.cardsVanderMaria,
       }),
+      migrate: (persistedState) => {
+        const state = persistedState as Partial<CarouselState> | undefined;
+
+        return {
+          idea: state?.idea || '',
+          prompt: state?.prompt || '',
+          postCaption: state?.postCaption || '',
+          instagramAccountId: state?.instagramAccountId || '',
+          cards: [],
+          totalCards: state?.totalCards || 10,
+          isGenerating: false,
+          docs: [],
+          carouselTemplate: state?.carouselTemplate || 'standard',
+          carouselType: state?.carouselType || 'auto',
+          cardsStandard: [],
+          cardsTweet: [],
+          cardsTweetExpanded: [],
+          cardsVanderMaria: [],
+        };
+      },
     }
   )
 );
