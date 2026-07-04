@@ -1,6 +1,7 @@
 'use client';
 
 import { useCarouselStore } from '@/lib/store';
+import type { CarouselTemplate } from '@/lib/store';
 
 export function TemplateSelector() {
   const {
@@ -9,7 +10,6 @@ export function TemplateSelector() {
     cardsStandard,
     cardsTweet,
     cardsTweetExpanded,
-    cardsVanderMaria,
   } = useCarouselStore();
 
   const templates = [
@@ -30,16 +30,9 @@ export function TemplateSelector() {
     {
       id: 'tweetExpanded',
       label: 'Tweet Expandido',
-      description: 'Minimalista dark (Vander Maria) com destaques',
+      description: 'Minimalista dark com destaques',
       icon: '🟥',
       count: cardsTweetExpanded.length,
-    },
-    {
-      id: 'vanderMaria',
-      label: 'Vander Maria',
-      description: 'Carrossel cinemático com 5 slides profissionais',
-      icon: '🎬',
-      count: cardsVanderMaria.length,
     },
   ];
 
@@ -59,7 +52,7 @@ export function TemplateSelector() {
         {templates.map((template) => (
           <button
             key={template.id}
-            onClick={() => setCarouselTemplate(template.id as any)}
+            onClick={() => setCarouselTemplate(template.id as CarouselTemplate)}
             className={`rounded-2xl border p-4 text-left transition-all ${
               carouselTemplate === template.id
                 ? 'border-blue-600 bg-blue-50 text-gray-900 shadow-sm'

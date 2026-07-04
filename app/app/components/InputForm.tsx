@@ -31,7 +31,6 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
     setTotalCards,
     carouselType,
     setCarouselType,
-    carouselTemplate,
   } = useCarouselStore();
   const [error, setError] = useState<string>('');
 
@@ -54,7 +53,7 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
       setError(`A ideia precisa ter pelo menos ${MIN_IDEA_LENGTH} caracteres`);
       return false;
     }
-    if (carouselTemplate !== 'vanderMaria' && (totalCards < 1 || totalCards > 20)) {
+    if (totalCards < 1 || totalCards > 20) {
       setError('Selecione entre 1 e 20 cards');
       return false;
     }
@@ -76,9 +75,6 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
   };
 
   const ideaPercentage = Math.round((idea.length / MAX_IDEA_LENGTH) * 100);
-  const cardsLockedByTemplate = carouselTemplate === 'vanderMaria';
-  const suggestedCardCount = cardsLockedByTemplate ? 5 : totalCards;
-
   return (
     <div className="space-y-4">
       <DocumentUpload />
@@ -182,28 +178,22 @@ export function InputForm({ onGenerate, isLoading }: InputFormProps) {
           <label className="block text-xs font-bold uppercase tracking-wide text-gray-700">
             📊 Quantos cards?
           </label>
-          {cardsLockedByTemplate && (
-            <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
-              Vander Maria usa 5 slides fixos
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-4">
           <input
             type="range"
             min={1}
             max={20}
-            value={suggestedCardCount}
+            value={totalCards}
             onChange={(e) => setTotalCards(parseInt(e.target.value))}
-            disabled={cardsLockedByTemplate}
             className="flex-1 h-2 cursor-pointer appearance-none rounded-lg bg-gray-300 accent-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full font-bold text-sm min-w-12 text-center">
-            {suggestedCardCount}
+            {totalCards}
           </span>
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          {cardsLockedByTemplate ? 'Esse template gera sempre 5 slides.' : 'Escolha entre 1 e 20 cards.'}
+          Escolha entre 1 e 20 cards.
         </p>
       </div>
 

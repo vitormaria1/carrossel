@@ -198,6 +198,7 @@ export const useCarouselStore = create<CarouselState>()(
       }),
       migrate: (persistedState) => {
         const state = persistedState as Partial<CarouselState> | undefined;
+        const persistedTemplate = state?.carouselTemplate;
 
         return {
           idea: state?.idea || '',
@@ -208,7 +209,7 @@ export const useCarouselStore = create<CarouselState>()(
           totalCards: state?.totalCards || 10,
           isGenerating: false,
           docs: [],
-          carouselTemplate: state?.carouselTemplate || 'standard',
+          carouselTemplate: persistedTemplate === 'vanderMaria' ? 'standard' : persistedTemplate || 'standard',
           carouselType: state?.carouselType || 'auto',
           cardsStandard: [],
           cardsTweet: [],

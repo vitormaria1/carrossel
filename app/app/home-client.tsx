@@ -34,7 +34,6 @@ export default function HomeClient() {
     setPostCaption,
     carouselType,
     carouselTemplate,
-    setTotalCards,
     cards,
     docs,
   } = useCarouselStore();
@@ -52,12 +51,6 @@ export default function HomeClient() {
       active = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (carouselTemplate === 'vanderMaria' && totalCards !== 5) {
-      setTotalCards(5);
-    }
-  }, [carouselTemplate, totalCards, setTotalCards]);
 
   const handleGenerate = async () => {
     if (!idea) return;
@@ -186,7 +179,7 @@ export default function HomeClient() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="grid grid-cols-3 gap-3 text-center text-white">
-                <StatPill label="Template" value={carouselTemplate === 'tweetExpanded' ? 'Expandido' : carouselTemplate === 'vanderMaria' ? 'Vander' : carouselTemplate === 'tweet' ? 'Tweet' : 'Standard'} />
+                <StatPill label="Template" value={carouselTemplate === 'tweetExpanded' ? 'Expandido' : carouselTemplate === 'tweet' ? 'Tweet' : 'Standard'} />
                 <StatPill label="Cards" value={String(cards.length || totalCards)} />
                 <StatPill label="Objetivo" value={objective} />
               </div>
@@ -231,9 +224,7 @@ export default function HomeClient() {
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                 <h3 className="text-white font-bold text-lg">Criar Carrossel</h3>
                 <p className="mt-1 text-xs text-blue-100">
-                  {carouselTemplate === 'vanderMaria'
-                    ? 'Fluxo premium com 5 slides e renderização cinemática.'
-                    : 'Defina o briefing e gere uma versão pronta para editar e exportar.'}
+                  Defina o briefing e gere uma versão pronta para editar e exportar.
                 </p>
               </div>
               <div className="p-6 max-h-96 overflow-y-auto space-y-4">
