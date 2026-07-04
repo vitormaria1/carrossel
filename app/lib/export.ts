@@ -1,6 +1,6 @@
 import { CarouselCard } from './store';
 import { renderTweetCardOnCanvas } from './canvas-shared';
-import { getTweetBrandProfile, getVanderBrandProfile } from './brand-profile';
+import { getTweetBrandProfile } from './brand-profile';
 
 declare global {
   interface Window {
@@ -755,7 +755,7 @@ function createTweetExpandedCardCanvasSync(card: CarouselCard, isCtaSlide: boole
 }
 
 async function createTweetExpandedCardCanvasWithImages(card: CarouselCard, isCtaSlide: boolean): Promise<HTMLCanvasElement> {
-  const brandProfile = getVanderBrandProfile();
+  const brandProfile = getTweetBrandProfile();
   let cardImg: HTMLImageElement | null = null;
   let logoImg: HTMLImageElement | null = null;
   let profileImg: HTMLImageElement | null = null;
@@ -793,7 +793,7 @@ function createTweetExpandedCardCanvasSyncInternal(
   logoImg: HTMLImageElement | null,
   profileImg: HTMLImageElement | null
 ): HTMLCanvasElement {
-  const brandProfile = getVanderBrandProfile();
+  const brandProfile = getTweetBrandProfile();
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('Canvas context not available');
