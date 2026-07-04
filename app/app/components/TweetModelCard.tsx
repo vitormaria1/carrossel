@@ -2,7 +2,7 @@
 
 import { CarouselCard, useCarouselStore } from '@/lib/store';
 import { useState, useRef } from 'react';
-import { getTweetBrandProfile } from '@/lib/brand-profile';
+import { getTweetBrandProfile, TWEET_PROFILE_IMAGE_URL } from '@/lib/brand-profile';
 import Image, { type ImageLoaderProps } from 'next/image';
 
 interface TweetModelCardProps {
@@ -77,7 +77,7 @@ export function TweetModelCard({ card, isFirst, isLast }: TweetModelCardProps) {
         <div className="flex items-start gap-3">
           <Image
             loader={imagePassthroughLoader}
-            src={brandProfile.profileImageUrl || '/profile.jpg'}
+            src={brandProfile.profileImageUrl || TWEET_PROFILE_IMAGE_URL}
             alt="Profile"
             width={48}
             height={48}

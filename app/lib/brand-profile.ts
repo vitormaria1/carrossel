@@ -5,20 +5,19 @@ export interface BrandProfile {
   markImageUrl?: string;
 }
 
+export const TWEET_PROFILE_IMAGE_URL =
+  'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
+
 function normalizeHandle(handle: string) {
   if (!handle) return '';
   return handle.startsWith('@') ? handle : `@${handle}`;
 }
 
 export function getTweetBrandProfile(): BrandProfile {
-  const defaultTweetProfileImageUrl =
-    'https://jfltbluknvirjoizhavf.supabase.co/storage/v1/object/public/teste01/@viniwaknin-2.jpg';
-
   return {
     displayName: process.env.NEXT_PUBLIC_TWEET_PROFILE_NAME?.trim() || 'Vitor Maria',
     handle: normalizeHandle(process.env.NEXT_PUBLIC_TWEET_PROFILE_HANDLE?.trim() || '@vitor_smaria'),
-    profileImageUrl:
-      process.env.NEXT_PUBLIC_TWEET_PROFILE_IMAGE_URL?.trim() || defaultTweetProfileImageUrl,
+    profileImageUrl: TWEET_PROFILE_IMAGE_URL,
   };
 }
 

@@ -2,7 +2,7 @@
 
 import { CarouselCard, useCarouselStore } from '@/lib/store';
 import { useMemo, useRef, useState } from 'react';
-import { getTweetBrandProfile } from '@/lib/brand-profile';
+import { getTweetBrandProfile, TWEET_PROFILE_IMAGE_URL } from '@/lib/brand-profile';
 import Image, { type ImageLoaderProps } from 'next/image';
 
 interface TweetExpandedCardProps {
@@ -42,7 +42,7 @@ function renderHighlightedText(text: string) {
 
 export function TweetExpandedCard({ card, idx, totalCards, isLast }: TweetExpandedCardProps) {
   const brandProfile = getTweetBrandProfile();
-  const profileImageUrl = brandProfile.profileImageUrl || '/profile.jpg';
+  const profileImageUrl = brandProfile.profileImageUrl || TWEET_PROFILE_IMAGE_URL;
 
   const { updateCard } = useCarouselStore();
   const [isEditingText, setIsEditingText] = useState(false);

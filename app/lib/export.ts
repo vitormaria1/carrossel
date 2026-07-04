@@ -1,6 +1,6 @@
 import { CarouselCard } from './store';
 import { renderTweetCardOnCanvas } from './canvas-shared';
-import { getTweetBrandProfile } from './brand-profile';
+import { getTweetBrandProfile, TWEET_PROFILE_IMAGE_URL } from './brand-profile';
 
 declare global {
   interface Window {
@@ -594,6 +594,7 @@ function isValidImageUrl(url: string | undefined): boolean {
 interface CachedImage {
   img: HTMLImageElement;
   timestamp: number;
+  url: string;
 }
 let profileImageCache: CachedImage | null = null;
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos
@@ -602,9 +603,14 @@ const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos
 async function loadProfileImage(): Promise<HTMLImageElement | null> {
   const brandProfile = getTweetBrandProfile();
   const now = Date.now();
+  const profileImageUrl = brandProfile.profileImageUrl || TWEET_PROFILE_IMAGE_URL;
 
   // Se tem cache válido, retornar
-  if (profileImageCache && (now - profileImageCache.timestamp) < CACHE_TTL_MS) {
+  if (
+    profileImageCache &&
+    profileImageCache.url === profileImageUrl &&
+    (now - profileImageCache.timestamp) < CACHE_TTL_MS
+  ) {
     console.log(`✅ Usando cache de perfil (${((now - profileImageCache.timestamp) / 1000).toFixed(0)}s atrás)`);
     return profileImageCache.img;
   }
@@ -615,8 +621,6 @@ async function loadProfileImage(): Promise<HTMLImageElement | null> {
     profileImageCache = null;
   }
 
-  const profileImageUrl = brandProfile.profileImageUrl;
-
   if (!profileImageUrl) {
     return null;
   }
@@ -625,7 +629,7 @@ async function loadProfileImage(): Promise<HTMLImageElement | null> {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-      profileImageCache = { img, timestamp: now };
+      profileImageCache = { img, timestamp: now, url: profileImageUrl };
       console.log('✅ Imagem de perfil carregada e cacheada (15min TTL)');
       resolve(img);
     };
