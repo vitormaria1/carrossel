@@ -3,7 +3,7 @@ import {
   resolveInstagramAccount,
 } from './instagram-accounts';
 
-const GRAPH_API = 'https://graph.facebook.com/v20.0';
+const INSTAGRAM_GRAPH_API = 'https://graph.instagram.com/v20.0';
 
 function normalizeAccessToken(token: string): string {
   return token
@@ -48,7 +48,7 @@ async function uploadImageToInstagram(
   businessAccountId: string,
   accessToken: string
 ): Promise<string> {
-  const response = await fetch(`${GRAPH_API}/${businessAccountId}/media`, {
+  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -78,7 +78,7 @@ async function createSingleImageContainer(
   businessAccountId: string,
   accessToken: string
 ): Promise<string> {
-  const response = await fetch(`${GRAPH_API}/${businessAccountId}/media`, {
+  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -107,7 +107,7 @@ async function createCarouselContainer(
   businessAccountId: string,
   accessToken: string
 ): Promise<string> {
-  const response = await fetch(`${GRAPH_API}/${businessAccountId}/media`, {
+  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -137,7 +137,7 @@ async function publishMedia(
   businessAccountId: string,
   accessToken: string
 ): Promise<string> {
-  const response = await fetch(`${GRAPH_API}/${businessAccountId}/media_publish`, {
+  const response = await fetch(`${INSTAGRAM_GRAPH_API}/${businessAccountId}/media_publish`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -163,7 +163,7 @@ async function publishMedia(
 
 async function getMediaPermalink(mediaId: string, accessToken: string): Promise<string | null> {
   const response = await fetch(
-    `${GRAPH_API}/${mediaId}?fields=permalink&access_token=${normalizeAccessToken(accessToken)}`
+    `${INSTAGRAM_GRAPH_API}/${mediaId}?fields=permalink&access_token=${normalizeAccessToken(accessToken)}`
   );
 
   if (!response.ok) {
