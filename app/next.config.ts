@@ -12,6 +12,9 @@ if (process.env.NODE_ENV === "development") {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: configDir,
+  outputFileTracingIncludes: {
+    '/api/external/generate-publish': ['./lib/fonts/**/*.ttf'],
+  },
   turbopack: {
     root: configDir,
   },
