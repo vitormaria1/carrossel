@@ -20,6 +20,23 @@ interface GeneratePublishRequest {
   caption?: string;
 }
 
+interface GeneratedPublishSlide {
+  id: string;
+  text: string;
+  headline?: string;
+  cta?: string;
+  colors: {
+    bg: string;
+    text: string;
+    accent: string;
+  };
+  carouselType: CarouselType;
+  cardIndex: number;
+  totalCards: number;
+  imageType: 'html';
+  order: number;
+}
+
 function resolveCarouselType(value?: CarouselType | 'auto'): CarouselType {
   if (value && value !== 'auto') return value;
   return 'ideologico_detalhado';
@@ -70,7 +87,8 @@ export async function POST(request: NextRequest) {
     }
 
     const colors = getDesignColors(carouselType);
-    const enrichedCards = cards.map((card, idx) => ({
+    const enrichedCards: GeneratedPublishSlide[] = cards.map((card, idx) => ({
+      id: `generated-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 10)}`,
       ...card,
       colors: {
         bg: colors.bg,
@@ -80,6 +98,8 @@ export async function POST(request: NextRequest) {
       carouselType,
       cardIndex: idx,
       totalCards,
+      imageType: 'html',
+      order: idx,
     }));
 
     const base64Images = await Promise.all(

@@ -1,5 +1,11 @@
 import sharp from 'sharp';
-import type { CarouselCard } from './store';
+
+export interface ServerRenderCard {
+  headline?: string;
+  text: string;
+  cta?: string;
+  colors: { bg: string; text: string; accent?: string };
+}
 
 export type ServerCarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded';
 
@@ -45,7 +51,7 @@ function linesToTspans(
     .join('');
 }
 
-function buildTweetSvg(card: CarouselCard, options: { width: number; height: number }): string {
+function buildTweetSvg(card: ServerRenderCard, options: { width: number; height: number }): string {
   const { width, height } = options;
   const bg = card.colors.bg || '#FFFFFF';
   const text = card.colors.text || '#0C1014';
@@ -95,7 +101,7 @@ function buildTweetSvg(card: CarouselCard, options: { width: number; height: num
   `;
 }
 
-function buildStandardSvg(card: CarouselCard, options: { width: number; height: number }): string {
+function buildStandardSvg(card: ServerRenderCard, options: { width: number; height: number }): string {
   const { width, height } = options;
   const bg = card.colors.bg || '#FFFFFF';
   const text = card.colors.text || '#0C1014';
@@ -132,7 +138,7 @@ function buildStandardSvg(card: CarouselCard, options: { width: number; height: 
 }
 
 export async function renderCardToBase64Server(
-  card: CarouselCard,
+  card: ServerRenderCard,
   template: ServerCarouselTemplate
 ): Promise<string> {
   const width = 1080;

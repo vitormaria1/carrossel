@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as GenerateRequest;
     const idea = body.idea?.trim();
     const totalCards = body.totalCards ?? 6;
-    const carouselType: CarouselType | 'auto' = body.carouselType && body.carouselType !== 'auto'
+    const carouselType: CarouselType = body.carouselType && body.carouselType !== 'auto'
       ? body.carouselType
       : 'ideologico_detalhado';
     const carouselTemplate = body.carouselTemplate || 'standard';
@@ -53,10 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Determinar tipo de carrossel e cores
-    const detectedCarouselType: CarouselType = carouselType !== 'auto'
-      ? carouselType
-      : detectCarouselTypeFromIdea(idea);
-    const colors = getDesignColors(detectedCarouselType);
+    const colors = getDesignColors(carouselType);
 
     // Enriquecer cards com metadados de design
     const enrichedCards = cards.map((card, idx) => ({
@@ -66,7 +63,7 @@ export async function POST(req: NextRequest) {
         text: colors.text,
         accent: colors.accent,
       },
-      carouselType: detectedCarouselType,
+      carouselType,
       cardIndex: idx,
       totalCards,
     }));
