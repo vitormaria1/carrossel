@@ -1,6 +1,9 @@
+import fs from 'fs';
+import os from 'os';
 import { join } from 'path';
 import { PassThrough } from 'stream';
 import * as PImage from 'pureimage';
+import { ARIAL_REGULAR_BASE64 } from './embedded-fonts';
 
 export interface ServerRenderCard {
   headline?: string;
@@ -11,13 +14,21 @@ export interface ServerRenderCard {
 
 export type ServerCarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded';
 
-const FONT_REGULAR = join(process.cwd(), 'lib/fonts/Arial.ttf');
-const FONT_BOLD = join(process.cwd(), 'lib/fonts/Arial-Bold.ttf');
+const FONT_RUNTIME_DIR = join(os.tmpdir(), 'carrossel-fonts');
+const FONT_REGULAR = join(FONT_RUNTIME_DIR, 'Arial.ttf');
 
 let fontsReady = false;
 
 function ensureFontsLoaded() {
   if (fontsReady) return;
+
+  if (!fs.existsSync(FONT_RUNTIME_DIR)) {
+    fs.mkdirSync(FONT_RUNTIME_DIR, { recursive: true });
+  }
+
+  if (!fs.existsSync(FONT_REGULAR)) {
+    fs.writeFileSync(FONT_REGULAR, Buffer.from(ARIAL_REGULAR_BASE64, 'base64'));
+  }
 
   const regular = PImage.registerFont(FONT_REGULAR, 'Arial');
 
