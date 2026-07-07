@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",
+    "@cf-wasm/resvg": "^0.3.4",
     "@vercel/blob": "^2.4.0",
     "anthropic": "^0.0.0",
     "axios": "^1.15.0",

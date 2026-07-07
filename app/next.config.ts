@@ -12,6 +12,7 @@ if (process.env.NODE_ENV === "development") {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: configDir,
+  serverExternalPackages: ['@cf-wasm/resvg'],
   turbopack: {
     root: configDir,
   },

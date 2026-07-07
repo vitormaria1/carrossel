@@ -1,4 +1,7 @@
-import sharp from 'sharp';
+import { Resvg, initResvg } from '../node_modules/@cf-wasm/resvg/dist/resvg.js';
+import resvgWasm from '../node_modules/@cf-wasm/resvg/dist/lib/resvg.wasm.inline.js';
+
+const resvgReady = initResvg(Promise.resolve(resvgWasm));
 
 export interface ServerRenderCard {
   headline?: string;
@@ -141,6 +144,8 @@ export async function renderCardToBase64Server(
   card: ServerRenderCard,
   template: ServerCarouselTemplate
 ): Promise<string> {
+  await resvgReady;
+
   const width = 1080;
   const height = template === 'standard' ? 1080 : 1350;
   const svg =
@@ -148,6 +153,7 @@ export async function renderCardToBase64Server(
       ? buildTweetSvg(card, { width, height })
       : buildStandardSvg(card, { width, height });
 
-  const buffer = await sharp(Buffer.from(svg)).png().toBuffer();
-  return buffer.toString('base64');
+  const resvg = await Resvg.async(svg);
+  const png = resvg.render().asPng();
+  return Buffer.from(png).toString('base64');
 }
