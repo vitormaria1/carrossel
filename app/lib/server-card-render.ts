@@ -20,10 +20,8 @@ function ensureFontsLoaded() {
   if (fontsReady) return;
 
   const regular = PImage.registerFont(FONT_REGULAR, 'Arial');
-  const bold = PImage.registerFont(FONT_BOLD, 'Arial Bold');
 
   regular.loadSync();
-  bold.loadSync();
 
   fontsReady = true;
 }
@@ -32,8 +30,8 @@ function escapeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
-function setFont(ctx: PImage.Context, size: number, bold = false) {
-  ctx.font = `${bold ? '700 ' : ''}${size}pt ${bold ? '"Arial Bold"' : 'Arial'}`;
+function setFont(ctx: PImage.Context, size: number) {
+  ctx.font = `${size}pt Arial`;
 }
 
 function measureWidth(ctx: PImage.Context, text: string): number {
@@ -44,7 +42,7 @@ function wrapText(ctx: PImage.Context, text: string, maxWidth: number, fontSize:
   const words = escapeText(text).split(' ').filter(Boolean);
   if (!words.length) return [];
 
-  setFont(ctx, fontSize, false);
+  setFont(ctx, fontSize);
 
   const lines: string[] = [];
   let current = words[0];
@@ -83,10 +81,9 @@ function drawCenteredLines(
   startY: number,
   lineHeight: number,
   fontSize: number,
-  bold = false,
   color = '#0C1014'
 ) {
-  setFont(ctx, fontSize, bold);
+  setFont(ctx, fontSize);
   ctx.fillStyle = color;
   let y = startY;
 
@@ -104,10 +101,9 @@ function drawLeftAlignedLines(
   startY: number,
   lineHeight: number,
   fontSize: number,
-  bold = false,
   color = '#0C1014'
 ) {
-  setFont(ctx, fontSize, bold);
+  setFont(ctx, fontSize);
   ctx.fillStyle = color;
   let y = startY;
 
@@ -123,38 +119,41 @@ function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
   const bg = card.colors.bg || '#FFFFFF';
   const text = card.colors.text || '#0C1014';
   const accent = card.colors.accent || '#5B51D8';
+  const left = 80;
+  const right = 80;
+  const contentWidth = width - left - right;
 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
 
   ctx.fillStyle = '#111111';
-  ctx.fillRect(0, 0, width, 118);
+  ctx.fillRect(0, 0, width, 132);
 
   ctx.fillStyle = accent;
-  ctx.fillRect(60, 34, 52, 52);
+  ctx.fillRect(60, 40, 52, 52);
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(78, 52, 16, 16);
+  ctx.fillRect(78, 58, 16, 16);
 
-  drawLeftAlignedLines(ctx, ['carrossel.ai'], 130, 68, 0, 26, true, '#FFFFFF');
-  drawLeftAlignedLines(ctx, ['@soudaviribas'], 130, 96, 0, 18, false, '#CFCFCF');
+  drawLeftAlignedLines(ctx, ['carrossel.ai'], 130, 74, 0, 24, '#FFFFFF');
+  drawLeftAlignedLines(ctx, ['@soudaviribas'], 130, 104, 0, 16, '#CFCFCF');
 
   const headline = card.headline?.trim() || '';
   const body = card.text.trim();
   const cta = card.cta?.trim() || '';
 
-  const headlineLines = headline ? wrapText(ctx, headline, 900, 58).slice(0, 2) : [];
-  const bodyLines = wrapText(ctx, body, 900, 38).slice(0, 10);
+  const headlineLines = headline ? wrapText(ctx, headline, contentWidth, 30).slice(0, 2) : [];
+  const bodyLines = wrapText(ctx, body, contentWidth, 26).slice(0, 11);
 
   if (headlineLines.length) {
-    drawLeftAlignedLines(ctx, headlineLines, 80, 250, 72, 58, true, text);
+    drawLeftAlignedLines(ctx, headlineLines, left, 240, 36, 30, text);
   }
 
-  drawLeftAlignedLines(ctx, bodyLines, 80, headlineLines.length ? 420 : 320, 56, 38, false, text);
+  drawLeftAlignedLines(ctx, bodyLines, left, headlineLines.length ? 360 : 300, 34, 26, text);
 
   if (cta) {
     ctx.fillStyle = accent;
-    fillRoundedRect(ctx, 80, height - 180, 320, 90, 28);
-    drawCenteredLines(ctx, [cta || 'Salvar'], 240, height - 122, 0, 32, true, '#FFFFFF');
+    fillRoundedRect(ctx, left, height - 176, 300, 84, 28);
+    drawCenteredLines(ctx, [cta || 'Salvar'], left + 150, height - 122, 0, 26, '#FFFFFF');
   }
 }
 
@@ -170,7 +169,7 @@ function drawStandardCard(ctx: PImage.Context, card: ServerRenderCard) {
   ctx.fillStyle = accent;
   ctx.fillRect(0, 0, width, 124);
 
-  drawLeftAlignedLines(ctx, ['carrossel.ai'], 80, 80, 0, 28, true, '#FFFFFF');
+  drawLeftAlignedLines(ctx, ['carrossel.ai'], 80, 80, 0, 28, '#FFFFFF');
 
   const headline = card.headline?.trim() || '';
   const body = card.text.trim();
@@ -180,15 +179,15 @@ function drawStandardCard(ctx: PImage.Context, card: ServerRenderCard) {
   const bodyLines = wrapText(ctx, body, 920, 40).slice(0, 10);
 
   if (headlineLines.length) {
-    drawLeftAlignedLines(ctx, headlineLines, 80, 275, 78, 64, true, text);
+    drawLeftAlignedLines(ctx, headlineLines, 80, 255, 46, 36, text);
   }
 
-  drawLeftAlignedLines(ctx, bodyLines, 80, headlineLines.length ? 500 : 320, 58, 40, false, text);
+  drawLeftAlignedLines(ctx, bodyLines, 80, headlineLines.length ? 390 : 320, 40, 28, text);
 
   if (cta) {
     ctx.fillStyle = accent;
     fillRoundedRect(ctx, 80, height - 170, 340, 88, 28);
-    drawCenteredLines(ctx, [cta], 250, height - 112, 0, 32, true, '#FFFFFF');
+    drawCenteredLines(ctx, [cta], 250, height - 112, 0, 28, '#FFFFFF');
   }
 }
 
