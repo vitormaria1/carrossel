@@ -15,15 +15,14 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",
-    "@cf-wasm/resvg": "^0.3.4",
     "@vercel/blob": "^2.4.0",
     "anthropic": "^0.0.0",
     "axios": "^1.15.0",
     "next": "16.2.6",
     "postgres": "^3.4.9",
+    "pureimage": "^0.4.18",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sharp": "^0.35.3",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

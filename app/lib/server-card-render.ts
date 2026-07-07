@@ -1,7 +1,6 @@
-import { Resvg, initResvg } from '../node_modules/@cf-wasm/resvg/dist/resvg.js';
-import resvgWasm from '../node_modules/@cf-wasm/resvg/dist/lib/resvg.wasm.inline.js';
-
-const resvgReady = initResvg(Promise.resolve(resvgWasm));
+import { join } from 'path';
+import { PassThrough } from 'stream';
+import * as PImage from 'pureimage';
 
 export interface ServerRenderCard {
   headline?: string;
@@ -12,148 +11,222 @@ export interface ServerRenderCard {
 
 export type ServerCarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded';
 
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+const FONT_REGULAR = join(process.cwd(), 'lib/fonts/Arial.ttf');
+const FONT_BOLD = join(process.cwd(), 'lib/fonts/Arial-Bold.ttf');
+
+let fontsReady = false;
+
+function ensureFontsLoaded() {
+  if (fontsReady) return;
+
+  const regular = PImage.registerFont(FONT_REGULAR, 'Arial');
+  const bold = PImage.registerFont(FONT_BOLD, 'Arial Bold');
+
+  regular.loadSync();
+  bold.loadSync();
+
+  fontsReady = true;
 }
 
-function approxLineWrap(text: string, maxCharsPerLine: number): string[] {
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let current = '';
+function escapeText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
 
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (candidate.length > maxCharsPerLine && current) {
+function setFont(ctx: PImage.Context, size: number, bold = false) {
+  ctx.font = `${bold ? '700 ' : ''}${size}pt ${bold ? '"Arial Bold"' : 'Arial'}`;
+}
+
+function measureWidth(ctx: PImage.Context, text: string): number {
+  return ctx.measureText(text).width;
+}
+
+function wrapText(ctx: PImage.Context, text: string, maxWidth: number, fontSize: number): string[] {
+  const words = escapeText(text).split(' ').filter(Boolean);
+  if (!words.length) return [];
+
+  setFont(ctx, fontSize, false);
+
+  const lines: string[] = [];
+  let current = words[0];
+
+  for (let index = 1; index < words.length; index += 1) {
+    const word = words[index];
+    const candidate = `${current} ${word}`;
+    if (measureWidth(ctx, candidate) <= maxWidth) {
+      current = candidate;
+    } else {
       lines.push(current);
       current = word;
-    } else {
-      current = candidate;
     }
   }
 
   if (current) lines.push(current);
-  return lines.length ? lines : [''];
+  return lines;
 }
 
-function linesToTspans(
+function fillRoundedRect(
+  ctx: PImage.Context,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  void radius;
+  ctx.fillRect(x, y, width, height);
+}
+
+function drawCenteredLines(
+  ctx: PImage.Context,
+  lines: string[],
+  centerX: number,
+  startY: number,
+  lineHeight: number,
+  fontSize: number,
+  bold = false,
+  color = '#0C1014'
+) {
+  setFont(ctx, fontSize, bold);
+  ctx.fillStyle = color;
+  let y = startY;
+
+  for (const line of lines) {
+    const width = measureWidth(ctx, line);
+    ctx.fillText(line, centerX - width / 2, y);
+    y += lineHeight;
+  }
+}
+
+function drawLeftAlignedLines(
+  ctx: PImage.Context,
   lines: string[],
   x: number,
   startY: number,
-  lineHeight: number
-): string {
-  return lines
-    .map((line, index) => {
-      const dy = index === 0 ? 0 : lineHeight;
-      return `<tspan x="${x}" dy="${dy}">${escapeXml(line)}</tspan>`;
-    })
-    .join('');
+  lineHeight: number,
+  fontSize: number,
+  bold = false,
+  color = '#0C1014'
+) {
+  setFont(ctx, fontSize, bold);
+  ctx.fillStyle = color;
+  let y = startY;
+
+  for (const line of lines) {
+    ctx.fillText(line, x, y);
+    y += lineHeight;
+  }
 }
 
-function buildTweetSvg(card: ServerRenderCard, options: { width: number; height: number }): string {
-  const { width, height } = options;
+function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
+  const width = 1080;
+  const height = 1350;
   const bg = card.colors.bg || '#FFFFFF';
   const text = card.colors.text || '#0C1014';
   const accent = card.colors.accent || '#5B51D8';
-  const headline = (card.headline || '').trim();
-  const body = (card.text || '').trim();
-  const cta = (card.cta || '').trim();
 
-  const headerLines = headline ? approxLineWrap(headline, 26).slice(0, 2) : [];
-  const bodyLines = approxLineWrap(body, 34).slice(0, 8);
-  const ctaLabel = cta || 'Salvar';
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
 
-  const headerY = 222;
-  const bodyY = headline ? 360 : 300;
-  const ctaY = height - 160;
+  ctx.fillStyle = '#111111';
+  ctx.fillRect(0, 0, width, 118);
 
-  return `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${bg}" />
-          <stop offset="100%" stop-color="${bg}" />
-        </linearGradient>
-      </defs>
-      <rect width="${width}" height="${height}" fill="url(#bgGrad)" />
-      <rect x="0" y="0" width="${width}" height="110" fill="#111111" />
-      <circle cx="80" cy="55" r="24" fill="${accent}" />
-      <circle cx="80" cy="55" r="14" fill="#FFFFFF" opacity="0.9" />
-      <text x="132" y="48" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">carrossel.ai</text>
-      <text x="132" y="77" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#CFCFCF">@soudaviribas</text>
+  ctx.fillStyle = accent;
+  ctx.fillRect(60, 34, 52, 52);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(78, 52, 16, 16);
 
-      ${headline ? `
-        <text x="80" y="${headerY}" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="900" fill="${text}">
-          ${linesToTspans(headerLines, 80, headerY, 72)}
-        </text>
-      ` : ''}
+  drawLeftAlignedLines(ctx, ['carrossel.ai'], 130, 68, 0, 26, true, '#FFFFFF');
+  drawLeftAlignedLines(ctx, ['@soudaviribas'], 130, 96, 0, 18, false, '#CFCFCF');
 
-      <text x="80" y="${bodyY}" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="500" fill="${text}" opacity="0.94">
-        ${linesToTspans(bodyLines, 80, bodyY, 58)}
-      </text>
+  const headline = card.headline?.trim() || '';
+  const body = card.text.trim();
+  const cta = card.cta?.trim() || '';
 
-      ${cta ? `
-        <rect x="80" y="${ctaY}" rx="28" ry="28" width="320" height="92" fill="${accent}" />
-        <text x="240" y="${ctaY + 58}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#FFFFFF">${escapeXml(ctaLabel)}</text>
-      ` : ''}
-    </svg>
-  `;
+  const headlineLines = headline ? wrapText(ctx, headline, 900, 58).slice(0, 2) : [];
+  const bodyLines = wrapText(ctx, body, 900, 38).slice(0, 10);
+
+  if (headlineLines.length) {
+    drawLeftAlignedLines(ctx, headlineLines, 80, 250, 72, 58, true, text);
+  }
+
+  drawLeftAlignedLines(ctx, bodyLines, 80, headlineLines.length ? 420 : 320, 56, 38, false, text);
+
+  if (cta) {
+    ctx.fillStyle = accent;
+    fillRoundedRect(ctx, 80, height - 180, 320, 90, 28);
+    drawCenteredLines(ctx, [cta || 'Salvar'], 240, height - 122, 0, 32, true, '#FFFFFF');
+  }
 }
 
-function buildStandardSvg(card: ServerRenderCard, options: { width: number; height: number }): string {
-  const { width, height } = options;
+function drawStandardCard(ctx: PImage.Context, card: ServerRenderCard) {
+  const width = 1080;
+  const height = 1080;
   const bg = card.colors.bg || '#FFFFFF';
   const text = card.colors.text || '#0C1014';
   const accent = card.colors.accent || '#405DE6';
-  const headline = (card.headline || '').trim();
-  const body = (card.text || '').trim();
-  const cta = (card.cta || '').trim();
 
-  const headlineLines = headline ? approxLineWrap(headline, 20).slice(0, 3) : [];
-  const bodyLines = approxLineWrap(body, 28).slice(0, 10);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = accent;
+  ctx.fillRect(0, 0, width, 124);
 
-  return `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="${width}" height="${height}" fill="${bg}" />
-      <rect x="0" y="0" width="${width}" height="120" fill="${accent}" />
-      <text x="80" y="78" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#FFFFFF">carrossel.ai</text>
+  drawLeftAlignedLines(ctx, ['carrossel.ai'], 80, 80, 0, 28, true, '#FFFFFF');
 
-      ${headline ? `
-        <text x="80" y="260" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="900" fill="${text}">
-          ${linesToTspans(headlineLines, 80, 260, 78)}
-        </text>
-      ` : ''}
+  const headline = card.headline?.trim() || '';
+  const body = card.text.trim();
+  const cta = card.cta?.trim() || '';
 
-      <text x="80" y="${headline ? 470 : 300}" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="500" fill="${text}" opacity="0.94">
-        ${linesToTspans(bodyLines, 80, headline ? 470 : 300, 54)}
-      </text>
+  const headlineLines = headline ? wrapText(ctx, headline, 920, 64).slice(0, 3) : [];
+  const bodyLines = wrapText(ctx, body, 920, 40).slice(0, 10);
 
-      ${cta ? `
-        <rect x="80" y="${height - 170}" rx="28" ry="28" width="340" height="88" fill="${accent}" />
-        <text x="250" y="${height - 115}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#FFFFFF">${escapeXml(cta)}</text>
-      ` : ''}
-    </svg>
-  `;
+  if (headlineLines.length) {
+    drawLeftAlignedLines(ctx, headlineLines, 80, 275, 78, 64, true, text);
+  }
+
+  drawLeftAlignedLines(ctx, bodyLines, 80, headlineLines.length ? 500 : 320, 58, 40, false, text);
+
+  if (cta) {
+    ctx.fillStyle = accent;
+    fillRoundedRect(ctx, 80, height - 170, 340, 88, 28);
+    drawCenteredLines(ctx, [cta], 250, height - 112, 0, 32, true, '#FFFFFF');
+  }
+}
+
+async function canvasToBase64(canvas: PImage.Bitmap): Promise<string> {
+  const stream = new PassThrough();
+  const chunks: Buffer[] = [];
+
+  stream.on('data', (chunk) => {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  });
+
+  const done = new Promise<string>((resolve, reject) => {
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('base64')));
+    stream.on('error', reject);
+  });
+
+  await PImage.encodePNGToStream(canvas, stream);
+  stream.end();
+
+  return done;
 }
 
 export async function renderCardToBase64Server(
   card: ServerRenderCard,
   template: ServerCarouselTemplate
 ): Promise<string> {
-  await resvgReady;
+  ensureFontsLoaded();
 
   const width = 1080;
   const height = template === 'standard' ? 1080 : 1350;
-  const svg =
-    template === 'tweet'
-      ? buildTweetSvg(card, { width, height })
-      : buildStandardSvg(card, { width, height });
+  const canvas = PImage.make(width, height);
+  const ctx = canvas.getContext('2d');
 
-  const resvg = await Resvg.async(svg);
-  const png = resvg.render().asPng();
-  return Buffer.from(png).toString('base64');
+  if (template === 'standard') {
+    drawStandardCard(ctx, card);
+  } else {
+    drawTweetCard(ctx, card);
+  }
+
+  return canvasToBase64(canvas);
 }
