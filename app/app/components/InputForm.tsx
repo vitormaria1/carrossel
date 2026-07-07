@@ -15,6 +15,7 @@ const CAROUSEL_TYPES = [
   { value: 'transformacao', label: '🚀 Transformação', desc: 'Jornada de mudança e resultado' },
   { value: 'autoridade', label: '🏆 Autoridade', desc: 'Expertise e conhecimento profundo' },
   { value: 'ideologico', label: '💡 Ideológico', desc: 'Visão e princípios' },
+  { value: 'ideologico_detalhado', label: '💡 Ideológico Detalhado', desc: 'Temas religiosos em linguagem universal' },
   { value: 'educacional', label: '📚 Educacional', desc: 'Aprender conceitos e técnicas' },
   { value: 'vendas', label: '💰 Vendas', desc: 'Problema → Solução → Ação' },
 ];

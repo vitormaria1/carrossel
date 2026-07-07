@@ -8,7 +8,7 @@ import { getDesignColors, type CarouselType } from "@/lib/davi-narrative";
 interface GenerateRequest {
   idea: string;
   customization?: string;
-  totalCards: number;
+  totalCards?: number;
   expertise?: string;
   yearsExperience?: number;
   mainAchievement?: string;
@@ -16,53 +16,34 @@ interface GenerateRequest {
   targetAudience?: string;
   toneOfVoice?: string;
   objective?: string;
-  carouselType?: string;
+  carouselType?: CarouselType | 'auto';
   carouselTemplate?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as GenerateRequest;
-    const {
-      idea,
-      customization,
-      totalCards,
-      expertise,
-      yearsExperience,
-      mainAchievement,
-      productName,
-      targetAudience,
-      toneOfVoice,
-      objective,
-      carouselType,
-      carouselTemplate,
-    } = body;
+    const idea = body.idea?.trim();
+    const totalCards = body.totalCards ?? 6;
+    const carouselType: CarouselType | 'auto' = body.carouselType && body.carouselType !== 'auto'
+      ? body.carouselType
+      : 'ideologico_detalhado';
+    const carouselTemplate = body.carouselTemplate || 'standard';
 
     // Validação básica
-    if (!idea || !totalCards) {
-      return NextResponse.json(
-        { error: "idea e totalCards são obrigatórios" },
-        { status: 400 }
-      );
+    if (!idea) {
+      return NextResponse.json({ error: 'idea é obrigatório' }, { status: 400 });
     }
 
-    const template = carouselTemplate || 'standard';
-    console.log(`📐 Template selecionado: ${template}`);
+    console.log(`📐 Template selecionado: ${carouselTemplate}`);
 
     // Chamar o agent para gerar copy de qualidade
     let cards;
     try {
       cards = await generateCarouselWithAgent({
         idea,
-        customization,
+        customization: body.customization,
         totalCards,
-        expertise,
-        yearsExperience,
-        mainAchievement,
-        productName,
-        targetAudience,
-        toneOfVoice,
-        objective,
         carouselType,
       });
     } catch (agentError) {
@@ -72,8 +53,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Determinar tipo de carrossel e cores
-    const detectedCarouselType: CarouselType = carouselType && carouselType !== 'auto'
-      ? (carouselType as CarouselType)
+    const detectedCarouselType: CarouselType = carouselType !== 'auto'
+      ? carouselType
       : detectCarouselTypeFromIdea(idea);
     const colors = getDesignColors(detectedCarouselType);
 
@@ -92,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       cards: enrichedCards,
-      carouselTemplate: template,
+      carouselTemplate,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {

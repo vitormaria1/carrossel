@@ -3,7 +3,62 @@
  * Baseado em princípios de transformação e storytelling
  */
 
-export type CarouselType = 'transformacao' | 'autoridade' | 'ideologico' | 'educacional' | 'vendas';
+export type CarouselType =
+  | 'transformacao'
+  | 'autoridade'
+  | 'ideologico'
+  | 'ideologico_detalhado'
+  | 'educacional'
+  | 'vendas';
+
+export const IDEOLOGICO_DETALHADO_ICP = `
+ICP:
+- Idade: 28 a 42 anos
+- Perfil: empresários, gestores, profissionais liberais e pessoas em cargos de responsabilidade
+- Dores: ansiedade constante, sensação de atraso, dificuldade de desligar do trabalho, culpa por não aproveitar a família, insônia e autocobrança excessiva
+- Objetivos: equilíbrio emocional, dormir melhor, reduzir ansiedade, melhorar relacionamentos e sentir mais controle da própria vida
+- Objeções: falta de tempo, dúvida sobre terapia, percepção de custo e medo de dependência
+`.trim();
+
+export const IDEOLOGICO_DETALHADO_INSTRUCTIONS = `
+Este formato recebe ideias de origem religiosa, espiritual ou de teor de fé, mas o carrossel final deve sair em linguagem não religiosa, universal e útil para qualquer leitor.
+
+Regras:
+- Extraia o princípio humano, emocional ou psicológico por trás do texto
+- Não cite Deus, Bíblia, oração, igreja, fé, salvação, evangelho ou termos equivalentes no texto final, a menos que o usuário peça explicitamente o oposto
+- Reescreva o conteúdo em linguagem laica, clara e aplicável à vida prática
+- Priorize temas como ansiedade, autocobrança, descanso, culpa, limite, presença, constância, equilíbrio e saúde emocional
+- O resultado precisa soar acolhedor, inteligente e aplicável para empresários, gestores e profissionais sob pressão
+- O texto final pode manter profundidade moral ou existencial, mas sem marcação religiosa explícita
+- O objetivo principal é ajudar o leitor no campo psicológico e comportamental, sem pregação
+`.trim();
+
+const carouselTypeLabels: Record<CarouselType, string> = {
+  transformacao: 'Transformação',
+  autoridade: 'Autoridade',
+  ideologico: 'Ideológico',
+  ideologico_detalhado: 'Ideológico Detalhado',
+  educacional: 'Educacional',
+  vendas: 'Vendas',
+};
+
+const carouselTypeDescriptions: Record<CarouselType, string> = {
+  transformacao: 'Jornada de mudança, problema, solução e resultado.',
+  autoridade: 'Expertise, credibilidade e convite para ação.',
+  ideologico: 'Manifesto, princípios e visão de mundo.',
+  ideologico_detalhado:
+    'Mesma base do ideológico, com mais contexto, exemplos práticos e aplicação concreta, convertendo temas religiosos em linguagem universal e psicológica.',
+  educacional: 'Conceito, desenvolvimento, aplicação e resultado.',
+  vendas: 'Problema, agonia, solução, prova e CTA.',
+};
+
+export function getCarouselTypeLabel(type: CarouselType): string {
+  return carouselTypeLabels[type];
+}
+
+export function getCarouselTypeDescription(type: CarouselType): string {
+  return carouselTypeDescriptions[type];
+}
 
 export interface NarrativeTemplate {
   type: CarouselType;
@@ -39,6 +94,11 @@ export function detectCarouselType(idea: string): CarouselType {
   // Ideológico: palavras sobre filosofia, valores, mindset
   if (/acredito|verdade|mindset|filosofia|princípio|valor|essência|autenticidade/i.test(lowerIdea)) {
     return 'ideologico';
+  }
+
+  // Ideológico detalhado: textos de origem religiosa que precisam ser traduzidos para linguagem universal
+  if (/deus|jesus|bíblia|biblia|fé|fe|igreja|oração|oracao|crist[aã]o|espiritual|propósito|proposito|evangelho|salmo|versículo|versiculo/i.test(lowerIdea)) {
+    return 'ideologico_detalhado';
   }
 
   // Educacional: palavras sobre aprender, entender, conceitos
@@ -163,6 +223,43 @@ const narrativeTemplates: Record<CarouselType, NarrativeTemplate> = {
       'Faça parte dessa movimento',
     ],
     philosophy: 'Inspirar através de uma visão diferente do mundo',
+  },
+
+  ideologico_detalhado: {
+    type: 'ideologico_detalhado',
+    name: 'Carrossel Ideológico Detalhado',
+    description: 'Versão aprofundada do ideológico com contexto, exemplo e aplicação para temas de origem religiosa em linguagem universal',
+    structure: [
+      'Tese',
+      'Contexto Real',
+      'Princípio Central',
+      'Exemplo Prático',
+      'Aplicação',
+      'Impacto',
+      'CTA',
+    ],
+    hooks: [
+      'Existe uma diferença entre concordar e aplicar.',
+      'Uma visão forte pede contexto e detalhe.',
+      'Princípios sem prática viram discurso.',
+      'O detalhe muda a forma como você enxerga isso.',
+      'Quando a ideia entra na rotina, tudo fica claro.',
+    ],
+    transitions: [
+      'O contexto que quase ninguém explica é:',
+      'Na prática, isso aparece quando:',
+      'O detalhe que sustenta essa visão é:',
+      'É aqui que a teoria encontra a realidade:',
+      'Aplicar isso significa:',
+    ],
+    ctas: [
+      'Salva para revisar depois',
+      'Comenta qual princípio mais pesa',
+      'Compartilha com quem pensa assim',
+      'Leva isso para a prática',
+      'Marca alguém que precisa ler',
+    ],
+    philosophy: 'Aprofundar uma visão de mundo traduzindo temas religiosos em linguagem útil, humana e universal',
   },
 
   educacional: {
@@ -352,6 +449,11 @@ export function getDesignColors(type: CarouselType): { bg: string; text: string;
       bg: '#FFFFFF',
       text: '#0C1014',
       accent: '#E1306C', // Instagram Pink
+    },
+    ideologico_detalhado: {
+      bg: '#FFFFFF',
+      text: '#0C1014',
+      accent: '#E1306C', // Mantém a base ideológica com o mesmo contraste
     },
     educacional: {
       bg: '#FFFFFF',

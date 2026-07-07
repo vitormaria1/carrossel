@@ -1,5 +1,13 @@
 'use server'; // 🔴 CRÍTICO: Rodar APENAS no servidor
 
+import {
+  IDEOLOGICO_DETALHADO_ICP,
+  IDEOLOGICO_DETALHADO_INSTRUCTIONS,
+  getCarouselTypeDescription,
+  getCarouselTypeLabel,
+  type CarouselType,
+} from './davi-narrative';
+
 /**
  * Managed Agent Integration para Geração de Carrosséis
  * Usa Claude Opus 4.6 com fetch direto para qualidade premium
@@ -32,8 +40,9 @@ TIPOS DE CARROSSÉIS:
 1. **Transformação**: Hook → Problema → Insight → Solução → Resultado
 2. **Autoridade**: Expertise → Conhecimento Profundo → Insights Únicos
 3. **Ideológico**: Princípio → Contexto → Exemplos → Impacto
-4. **Educacional**: Conceito → Desenvolvimento → Aplicação → Resultado
-5. **Vendas**: Problema → Agonia → Solução → Prova
+4. **Ideológico Detalhado**: mesma base do ideológico, com mais contexto, exemplos práticos e aplicação concreta
+5. **Educacional**: Conceito → Desenvolvimento → Aplicação → Resultado
+6. **Vendas**: Problema → Agonia → Solução → Prova
 
 PRINCÍPIOS FUNDAMENTAIS:
 - Minimalismo Funcional: clean, sem decoração desnecessária
@@ -88,7 +97,7 @@ interface GenerateCarouselParams {
   targetAudience?: string;
   toneOfVoice?: string;
   objective?: string;
-  carouselType?: string;
+  carouselType?: CarouselType | 'auto';
 }
 
 /**
@@ -140,7 +149,14 @@ ${productName ? `PRODUTO/SERVIÇO: ${productName}` : ""}
 ${targetAudience ? `PÚBLICO: ${targetAudience}` : ""}
 ${toneOfVoice ? `TOM: ${toneOfVoice}` : "Tom: claro, direto, conversacional"}
 ${objective ? `OBJETIVO: ${objective}` : ""}
-${carouselType && carouselType !== 'auto' ? `TIPO: ${carouselType}` : "TIPO: detecte automáticamente"}
+${carouselType && carouselType !== 'auto'
+    ? `TIPO: ${getCarouselTypeLabel(carouselType)}
+DESCRIÇÃO: ${getCarouselTypeDescription(carouselType)}`
+    : "TIPO: detecte automáticamente"}
+
+${carouselType === 'ideologico_detalhado'
+    ? `${IDEOLOGICO_DETALHADO_ICP}\n\n${IDEOLOGICO_DETALHADO_INSTRUCTIONS}\n\nEXTRA: aprofunde a visão ideológica com contexto real, exemplos práticos, implicações e um CTA que puxe para a ação. Traduza tudo para linguagem não religiosa e aplicável à vida cotidiana.`
+    : ''}
 
 ESTRUTURA:
 ${totalCards === 1

@@ -12,6 +12,10 @@ Aplicacao Next.js para gerar, editar, exportar e publicar carrosseis de Instagra
 6. Publique agora
 7. Acesse `Financeiro` para abrir a central integrada do ecossistema
 
+Tipos de carrossel disponíveis na geração: `transformacao`, `autoridade`, `ideologico`, `ideologico_detalhado`, `educacional`, `vendas` e `auto`.
+
+`ideologico_detalhado` é o formato usado para transformar temas religiosos ou espirituais em linguagem não religiosa, útil e psicológica para o público-alvo.
+
 ## Scripts
 
 ```bash

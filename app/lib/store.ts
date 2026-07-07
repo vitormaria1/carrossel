@@ -23,7 +23,14 @@ export interface UploadedDoc {
 }
 
 export type CarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
-export type CarouselType = 'transformacao' | 'autoridade' | 'ideologico' | 'educacional' | 'vendas' | 'auto';
+export type CarouselType =
+  | 'transformacao'
+  | 'autoridade'
+  | 'ideologico'
+  | 'ideologico_detalhado'
+  | 'educacional'
+  | 'vendas'
+  | 'auto';
 
 type TemplateBuckets = Record<CarouselTemplate, CarouselCard[]>;
 

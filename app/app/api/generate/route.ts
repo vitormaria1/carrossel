@@ -1,9 +1,13 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  IDEOLOGICO_DETALHADO_ICP,
+  IDEOLOGICO_DETALHADO_INSTRUCTIONS,
   generateNarrativeContent,
   detectCarouselType,
   getDesignColors,
+  getCarouselTypeDescription,
+  getCarouselTypeLabel,
   type CarouselType,
 } from '@/lib/davi-narrative';
 
@@ -50,6 +54,8 @@ export async function POST(req: NextRequest) {
       ? carouselType
       : detectCarouselType(idea);
     const colors = getDesignColors(resolvedCarouselType);
+    const carouselTypeLabel = getCarouselTypeLabel(resolvedCarouselType);
+    const carouselTypeDescription = getCarouselTypeDescription(resolvedCarouselType);
 
     // Mock response quando API_KEY não está configurada
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -85,11 +91,16 @@ CONTEXTO DO USUÁRIO:
 
 FILOSOFIA: Transformação pessoal através de ação e conhecimento.
 
-TIPO DE CARROSSEL DETECTADO: ${resolvedCarouselType.toUpperCase()}
+TIPO DE CARROSSEL DETECTADO: ${carouselTypeLabel.toUpperCase()}
+DESCRIÇÃO DO FORMATO: ${carouselTypeDescription}
 
 TEMPLATE ESCOLHIDO: ${(carouselTemplate || 'standard').toUpperCase()}
 
 ${userContext}
+
+${resolvedCarouselType === 'ideologico_detalhado' ? IDEOLOGICO_DETALHADO_ICP : ''}
+
+${resolvedCarouselType === 'ideologico_detalhado' ? IDEOLOGICO_DETALHADO_INSTRUCTIONS : ''}
 
 PRINCÍPIOS:
 1. Minimalismo Funcional - Clean, sem decoração desnecessária
@@ -99,6 +110,10 @@ PRINCÍPIOS:
 5. Autoridade + Ação - Combinar expertise com call-to-action
 6. PERSONALIZAÇÃO - Usar expertise, produto e público-alvo do usuário
 7. CONVERSÃO - Otimizar para ${objective}
+${resolvedCarouselType === 'ideologico_detalhado'
+    ? '8. PROFUNDIDADE IDEOLÓGICA - transformar temas de origem religiosa em linguagem universal, psicológica e aplicada, com contexto, exemplos e implicações práticas.'
+    : ''
+  }
 
 ESTRUTURA DO CARROSSEL:
 ${totalCards === 1
