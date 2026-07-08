@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { assertExternalApiAuthorized } from '@/lib/external-api';
 import { type CarouselType } from '@/lib/davi-narrative';
 import type { ServerCarouselTemplate } from '@/lib/server-card-render';
@@ -66,27 +65,13 @@ async function postJsonFromSelf<T>(
 export async function POST(request: NextRequest) {
   try {
     assertExternalApiAuthorized(request);
-    const { env, ctx } = getCloudflareContext();
-    const worker = env.WORKER_SELF_REFERENCE;
 
-    if (!worker?.fetch) {
-      return NextResponse.json(
-        {
-          error:
-            'WORKER_SELF_REFERENCE não está configurado. Essa rota depende do binding de serviço para orquestrar geração e publicação.',
-        },
-        { status: 500 }
-      );
-    }
-
-    const authorization = request.headers.get('authorization') || '';
     const body = (await request.json()) as GeneratePublishRequest;
     const idea = body.idea?.trim();
     const totalCards = Number(body.totalCards);
     const carouselType = resolveCarouselType(body.carouselType);
     const carouselTemplate = body.carouselTemplate || 'tweet';
     const renderTemplate = resolveRenderTemplate(carouselTemplate);
-    const jobId = `ext-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
     if (!idea) {
       return NextResponse.json({ error: 'idea é obrigatório' }, { status: 400 });
@@ -99,82 +84,57 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const runJob = async () => {
-      const generated = await postJsonFromSelf<{
-        success: boolean;
-        cards: Array<Record<string, unknown>>;
-        caption: string;
-        carouselTemplate: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
-        carouselType: CarouselType;
-      }>(
-        worker,
-        '/api/external/generate',
-        request.url,
-        {
-          idea,
-          totalCards,
-          carouselType,
-          carouselTemplate,
-          caption: body.caption,
-        },
-        authorization
-      );
+    const generated = await postJsonFromSelf<{
+      success: boolean;
+      cards: Array<Record<string, unknown>>;
+      caption: string;
+      carouselTemplate: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
+      carouselType: CarouselType;
+    }>(
+      { fetch },
+      '/api/external/generate',
+      request.url,
+      {
+        idea,
+        totalCards,
+        carouselType,
+        carouselTemplate,
+        caption: body.caption,
+      },
+      request.headers.get('authorization') || ''
+    );
 
-      const published = await postJsonFromSelf<{
-        success: boolean;
-        postId: string;
-        url: string;
-        imageUrls: string[];
-      }>(
-        worker,
-        '/api/external/publish',
-        request.url,
-        {
-          cards: generated.cards,
-          caption: generated.caption,
-          carouselTemplate: generated.carouselTemplate,
-          renderTemplate,
-          instagramAccountId: body.instagramAccountId,
-        },
-        authorization
-      );
-
-      return {
-        success: true,
-        postId: published.postId,
-        url: published.url,
+    const published = await postJsonFromSelf<{
+      success: boolean;
+      postId: string;
+      url: string;
+      imageUrls: string[];
+    }>(
+      { fetch },
+      '/api/external/publish',
+      request.url,
+      {
         cards: generated.cards,
-        imageUrls: published.imageUrls,
+        caption: generated.caption,
         carouselTemplate: generated.carouselTemplate,
         renderTemplate,
-        carouselType: generated.carouselType,
-        generatedAt: new Date().toISOString(),
-        publishEndpoint: '/api/external/publish',
-      };
-    };
+        instagramAccountId: body.instagramAccountId,
+      },
+      request.headers.get('authorization') || ''
+    );
 
-    if (process.env.NODE_ENV === 'production') {
-      ctx.waitUntil(
-        runJob().catch((error) => {
-          console.error(`[${jobId}] job falhou:`, error);
-        })
-      );
-
-      return NextResponse.json(
-        {
-          success: true,
-          queued: true,
-          jobId,
-          generateEndpoint: '/api/external/generate',
-          publishEndpoint: '/api/external/publish',
-          message: 'Carrossel recebido e processamento iniciado.',
-        },
-        { status: 202 }
-      );
-    }
-
-    const result = await runJob();
-    return NextResponse.json(result);
+    return NextResponse.json({
+      success: true,
+      postId: published.postId,
+      url: published.url,
+      cards: generated.cards,
+      imageUrls: published.imageUrls,
+      carouselTemplate: generated.carouselTemplate,
+      renderTemplate,
+      carouselType: generated.carouselType,
+      generatedAt: new Date().toISOString(),
+      publishEndpoint: '/api/external/publish',
+    });
   } catch (error) {
     if (error instanceof Error && error.name === 'UnauthorizedError') {
       return NextResponse.json({ error: error.message }, { status: 401 });
