@@ -210,22 +210,24 @@ function drawRoundedImage(
 
 async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
   const width = 1080;
-  const height = 1440;
-  const bg = card.colors.bg || '#FFFFFF';
-  const textColor = card.colors.text || '#0C1014';
-  const accent = card.colors.accent || '#405DE6';
+  const height = 1350;
+  const bg = '#1A0F0F';
+  const textColor = '#F4F0E8';
+  const accent = card.colors.accent || '#A8342F';
   const profileName = process.env.NEXT_PUBLIC_TWEET_PROFILE_NAME?.trim() || 'Vitor Maria';
   const profileHandle = process.env.NEXT_PUBLIC_TWEET_PROFILE_HANDLE?.trim() || '@vitor_smaria';
 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
 
-  const padding = 50;
-  const profileImageSize = 110;
-  const textWidth = width - padding * 2;
-  const marginTop = card.imageUrl ? 50 : 150;
-  const profileX = padding;
-  const profileY = marginTop;
+  const paddingX = 50;
+  const paddingY = 40;
+  const profileImageSize = 44;
+  const textWidth = width - paddingX * 2;
+  const profileX = paddingX;
+  const profileY = paddingY;
+  const footerHeight = 90;
+  const headerHeight = 80;
 
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -234,7 +236,7 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
   if (profileImg) {
     drawCircleImage(ctx, profileImg, profileX, profileY, profileImageSize);
   } else {
-    ctx.fillStyle = '#E0E0E0';
+    ctx.fillStyle = '#7A1C1C';
     ctx.beginPath();
     ctx.arc(
       profileX + profileImageSize / 2,
@@ -244,54 +246,68 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
       Math.PI * 2
     );
     ctx.fill();
+
+    ctx.fillStyle = '#F4F0E8';
+    setFont(ctx, 22);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('VM', profileX + profileImageSize / 2, profileY + profileImageSize / 2 + 1);
   }
 
   // Header text
   drawLeftAlignedLines(
     ctx,
     [profileName],
-    profileX + profileImageSize + 30,
-    profileY + 5,
+    profileX + profileImageSize + 14,
+    profileY + 4,
     0,
-    44,
-    '#000000'
+    14,
+    '#F4F0E8'
   );
 
-  setFont(ctx, 40);
-  ctx.fillStyle = '#7A7A7A';
-  ctx.fillText(profileHandle, profileX + profileImageSize + 30, profileY + 55);
+  setFont(ctx, 12);
+  ctx.fillStyle = '#888888';
+  ctx.fillText(profileHandle, profileX + profileImageSize + 14, profileY + 24);
 
-  const textX = padding;
-  const textY = profileY + profileImageSize + 50;
+  const contentTop = paddingY + headerHeight + 20;
+  const contentBottom = height - paddingY - footerHeight - 30;
+  const textX = paddingX;
 
   const headline = card.headline?.trim() || '';
-  const headlineLines = headline ? wrapText(ctx, headline, textWidth, 44).slice(0, 2) : [];
-  const bodyFontSize = 34;
+  const headlineLines = headline ? wrapText(ctx, headline, textWidth, 28).slice(0, 2) : [];
+  const bodyFontSize = 22;
   const bodyLines = wrapText(ctx, card.text, textWidth, bodyFontSize);
 
-  let currentY = textY;
+  let currentY = contentTop + 10;
 
   if (headlineLines.length) {
-    drawPseudoBoldLines(ctx, headlineLines, textX, currentY, 52, 44, '#0C1014');
-    currentY += headlineLines.length * 52 + 30;
+    drawPseudoBoldLines(ctx, headlineLines, textX, currentY, 38, 28, '#F4F0E8');
+    currentY += headlineLines.length * 38 + 22;
   }
 
   // Body copy
-  drawLeftAlignedLines(ctx, bodyLines, textX, currentY, 46, bodyFontSize, textColor);
-
-  currentY += bodyLines.length * 46;
+  const bodyBlockHeight = bodyLines.length * 32;
+  const bodyStartY = currentY;
+  drawLeftAlignedLines(ctx, bodyLines, textX, bodyStartY, 32, bodyFontSize, textColor);
+  currentY += bodyBlockHeight;
 
   if (card.imageUrl) {
-    // The app uses a centered image below the text when the content includes one.
-    // We keep this behavior if the generated card already has an image URL.
     const tweetImg = await loadImageFromUrl(card.imageUrl);
     if (tweetImg) {
-      const maxImageHeight = 550;
-      const maxImageWidth = (maxImageHeight * 16) / 9;
-      const imageWidth = Math.min(maxImageWidth, width - padding * 2);
-      const imageHeight = (imageWidth * 9) / 16;
+      const maxImageHeight = 320;
+      const imageGap = 36;
+      const maxImageWidth = textWidth;
+      const aspect = tweetImg.width / tweetImg.height || 1;
+      let imageWidth = maxImageWidth;
+      let imageHeight = imageWidth / aspect;
+      if (imageHeight > maxImageHeight) {
+        imageHeight = maxImageHeight;
+        imageWidth = imageHeight * aspect;
+      }
+      imageWidth = Math.min(imageWidth, maxImageWidth);
+      imageHeight = Math.min(imageHeight, maxImageHeight);
       const imageX = (width - imageWidth) / 2;
-      const imageStartY = currentY + 50;
+      const imageStartY = Math.min(currentY + imageGap, contentBottom - imageHeight);
 
       drawRoundedImage(ctx, tweetImg, imageX, imageStartY, imageWidth, imageHeight, 20);
     }
@@ -309,7 +325,7 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
     ctx.fill();
 
     const ctaTextColor = isLightBg(accent) ? '#0C1014' : '#FFFFFF';
-    setFont(ctx, 48);
+    setFont(ctx, 22);
     ctx.fillStyle = ctaTextColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
