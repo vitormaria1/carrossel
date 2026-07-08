@@ -9,6 +9,7 @@ import {
   type CarouselType,
 } from '@/lib/davi-narrative';
 import type { ServerCarouselTemplate } from '@/lib/server-card-render';
+import { publishCarouselWithUrls } from '@/lib/instagram-publish';
 
 interface GeneratePublishRequest {
   idea: string;
@@ -58,16 +59,24 @@ async function postJsonFromSelf<T>(
   payload: unknown,
   authorization: string
 ): Promise<T> {
-  const response = await worker.fetch(
-    new Request(new URL(path, requestUrl), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        authorization,
-      },
-      body: JSON.stringify(payload),
-    })
-  );
+  const targetUrl = new URL(path, requestUrl).toString();
+  const init = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      authorization,
+    },
+    body: JSON.stringify(payload),
+  } as const;
+
+  let response: Response;
+
+  try {
+    response = await worker.fetch(targetUrl, init);
+  } catch (error) {
+    console.warn(`worker.fetch falhou para ${path}, usando fetch direto:`, error);
+    response = await fetch(targetUrl, init);
+  }
 
   const contentType = response.headers.get('content-type') || '';
   const data = contentType.includes('application/json')
@@ -168,19 +177,13 @@ export async function POST(request: NextRequest) {
       imageUrls.push(uploadResult.url);
     }
 
-    const published = await postJsonFromSelf<{ success: boolean; postId: string; url: string }>(
-      worker,
-      '/api/publish-instagram',
-      request.url,
-      {
-        instagramAccountId: body.instagramAccountId,
-        slides: enrichedCards,
-        caption: buildCaption(idea, body.caption),
-        carouselTemplate,
-        imageUrls,
-      },
-      authorization
-    );
+    const published = await publishCarouselWithUrls({
+      slides: enrichedCards,
+      caption: buildCaption(idea, body.caption),
+      imageUrls,
+      carouselTemplate,
+      instagramAccountId: body.instagramAccountId,
+    });
 
     return NextResponse.json({
       success: true,

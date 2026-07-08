@@ -57,7 +57,9 @@ export function resolveInstagramAccount(accountId?: string): InstagramAccountCon
     return accounts[0];
   }
 
-  const account = accounts.find((entry) => entry.id === accountId);
+  const account = accounts.find(
+    (entry) => entry.id === accountId || entry.businessAccountId === accountId
+  );
   if (!account) {
     throw new Error(`Conta do Instagram não encontrada: ${accountId}`);
   }
