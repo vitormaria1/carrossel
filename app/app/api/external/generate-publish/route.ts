@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { assertExternalApiAuthorized } from '@/lib/external-api';
-import { generateCarouselWithAgent, generateCarouselFallback } from '@/lib/managed-agent';
-import {
-  IDEOLOGICO_DETALHADO_ICP,
-  IDEOLOGICO_DETALHADO_INSTRUCTIONS,
-  getDesignColors,
-  type CarouselType,
-} from '@/lib/davi-narrative';
+import { type CarouselType } from '@/lib/davi-narrative';
 import type { ServerCarouselTemplate } from '@/lib/server-card-render';
-import { publishCarouselWithUrls } from '@/lib/instagram-publish';
 
 interface GeneratePublishRequest {
   idea: string;
@@ -20,36 +13,17 @@ interface GeneratePublishRequest {
   caption?: string;
 }
 
-interface GeneratedPublishSlide {
-  id: string;
-  text: string;
-  headline?: string;
-  cta?: string;
-  colors: {
-    bg: string;
-    text: string;
-    accent: string;
-  };
-  carouselType: CarouselType;
-  cardIndex: number;
-  totalCards: number;
-  imageType: 'html';
-  order: number;
-}
-
-interface RenderUploadResponse {
-  url: string;
-}
-
 function resolveCarouselType(value?: CarouselType | 'auto'): CarouselType {
   if (value && value !== 'auto') return value;
   return 'ideologico_detalhado';
 }
 
-function buildCaption(idea: string, caption?: string): string {
-  const trimmed = caption?.trim();
-  if (trimmed) return trimmed;
-  return `Confira este carrossel sobre ${idea.slice(0, 80).trim()}.`;
+function resolveRenderTemplate(
+  value?: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria'
+): ServerCarouselTemplate {
+  if (value === 'standard') return 'standard';
+  if (value === 'tweetExpanded') return 'tweetExpanded';
+  return 'tweet';
 }
 
 async function postJsonFromSelf<T>(
@@ -70,7 +44,6 @@ async function postJsonFromSelf<T>(
   } as const;
 
   let response: Response;
-
   try {
     response = await worker.fetch(targetUrl, init);
   } catch (error) {
@@ -100,26 +73,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'WORKER_SELF_REFERENCE não está configurado. Essa rota depende do binding de serviço para dividir a execução.',
+            'WORKER_SELF_REFERENCE não está configurado. Essa rota depende do binding de serviço para orquestrar geração e publicação.',
         },
         { status: 500 }
       );
     }
 
     const authorization = request.headers.get('authorization') || '';
-
     const body = (await request.json()) as GeneratePublishRequest;
     const idea = body.idea?.trim();
     const totalCards = Number(body.totalCards);
     const carouselType = resolveCarouselType(body.carouselType);
-    const carouselTemplate: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria' =
-      body.carouselTemplate || 'tweet';
-    const renderTemplate: ServerCarouselTemplate =
-      carouselTemplate === 'standard'
-        ? 'standard'
-        : carouselTemplate === 'tweetExpanded'
-          ? 'tweetExpanded'
-          : 'tweet';
+    const carouselTemplate = body.carouselTemplate || 'tweet';
+    const renderTemplate = resolveRenderTemplate(carouselTemplate);
+    const jobId = `ext-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
     if (!idea) {
       return NextResponse.json({ error: 'idea é obrigatório' }, { status: 400 });
@@ -132,86 +99,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const jobId = `ext-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-
-    const runPublishJob = async () => {
-      let cards;
-      try {
-        cards = await generateCarouselWithAgent({
+    const runJob = async () => {
+      const generated = await postJsonFromSelf<{
+        success: boolean;
+        cards: Array<Record<string, unknown>>;
+        caption: string;
+        carouselTemplate: 'standard' | 'tweet' | 'tweetExpanded' | 'vanderMaria';
+        carouselType: CarouselType;
+      }>(
+        worker,
+        '/api/external/generate',
+        request.url,
+        {
           idea,
           totalCards,
           carouselType,
-        });
-      } catch (error) {
-        console.error(`[${jobId}] Agent falhou, usando fallback:`, error);
-        cards = await generateCarouselFallback(idea, totalCards);
-      }
-
-      const colors = getDesignColors(carouselType);
-      const enrichedCards: GeneratedPublishSlide[] = cards.map((card, idx) => ({
-        id: `generated-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 10)}`,
-        ...card,
-        colors: {
-          bg: colors.bg,
-          text: colors.text,
-          accent: colors.accent,
+          carouselTemplate,
+          caption: body.caption,
         },
-        carouselType,
-        cardIndex: idx,
-        totalCards,
-        imageType: 'html',
-        order: idx,
-      }));
+        authorization
+      );
 
-      const imageUrls: string[] = [];
+      const published = await postJsonFromSelf<{
+        success: boolean;
+        postId: string;
+        url: string;
+        imageUrls: string[];
+      }>(
+        worker,
+        '/api/external/publish',
+        request.url,
+        {
+          cards: generated.cards,
+          caption: generated.caption,
+          carouselTemplate: generated.carouselTemplate,
+          renderTemplate,
+          instagramAccountId: body.instagramAccountId,
+        },
+        authorization
+      );
 
-      for (const card of enrichedCards) {
-        const uploadResult = await postJsonFromSelf<RenderUploadResponse>(
-          worker,
-          '/api/external/render-upload-card',
-          request.url,
-          {
-            card,
-            renderTemplate,
-          },
-          authorization
-        );
-
-        imageUrls.push(uploadResult.url);
-      }
-
-      const published = await publishCarouselWithUrls({
-        slides: enrichedCards,
-        caption: buildCaption(idea, body.caption),
-        imageUrls,
-        carouselTemplate,
-        instagramAccountId: body.instagramAccountId,
-      });
-
-      console.log(`[${jobId}] publicado:`, published.url);
       return {
         success: true,
         postId: published.postId,
         url: published.url,
-        cards: enrichedCards,
-        imageUrls,
-        carouselTemplate,
+        cards: generated.cards,
+        imageUrls: published.imageUrls,
+        carouselTemplate: generated.carouselTemplate,
         renderTemplate,
-        carouselType,
+        carouselType: generated.carouselType,
         generatedAt: new Date().toISOString(),
-        prompt: {
-          fixed: [
-            'Generate carrossel using ideologico_detalhado as fixed mode',
-            IDEOLOGICO_DETALHADO_ICP,
-            IDEOLOGICO_DETALHADO_INSTRUCTIONS,
-          ],
-        },
+        publishEndpoint: '/api/external/publish',
       };
     };
 
     if (process.env.NODE_ENV === 'production') {
       ctx.waitUntil(
-        runPublishJob().catch((error) => {
+        runJob().catch((error) => {
           console.error(`[${jobId}] job falhou:`, error);
         })
       );
@@ -221,13 +165,15 @@ export async function POST(request: NextRequest) {
           success: true,
           queued: true,
           jobId,
+          generateEndpoint: '/api/external/generate',
+          publishEndpoint: '/api/external/publish',
           message: 'Carrossel recebido e processamento iniciado.',
         },
         { status: 202 }
       );
     }
 
-    const result = await runPublishJob();
+    const result = await runJob();
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof Error && error.name === 'UnauthorizedError') {
