@@ -93,7 +93,7 @@ async function postJsonFromSelf<T>(
 export async function POST(request: NextRequest) {
   try {
     assertExternalApiAuthorized(request);
-    const { env } = getCloudflareContext();
+    const { env, ctx } = getCloudflareContext();
     const worker = env.WORKER_SELF_REFERENCE;
 
     if (!worker?.fetch) {
@@ -132,77 +132,103 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let cards;
-    try {
-      cards = await generateCarouselWithAgent({
-        idea,
-        totalCards,
-        carouselType,
-      });
-    } catch (error) {
-      console.error('Agent falhou, usando fallback:', error);
-      cards = await generateCarouselFallback(idea, totalCards);
-    }
+    const jobId = `ext-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-    const colors = getDesignColors(carouselType);
-    const enrichedCards: GeneratedPublishSlide[] = cards.map((card, idx) => ({
-      id: `generated-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 10)}`,
-      ...card,
-      colors: {
-        bg: colors.bg,
-        text: colors.text,
-        accent: colors.accent,
-      },
-      carouselType,
-      cardIndex: idx,
-      totalCards,
-      imageType: 'html',
-      order: idx,
-    }));
+    const runPublishJob = async () => {
+      let cards;
+      try {
+        cards = await generateCarouselWithAgent({
+          idea,
+          totalCards,
+          carouselType,
+        });
+      } catch (error) {
+        console.error(`[${jobId}] Agent falhou, usando fallback:`, error);
+        cards = await generateCarouselFallback(idea, totalCards);
+      }
 
-    const imageUrls: string[] = [];
-
-    for (const card of enrichedCards) {
-      const uploadResult = await postJsonFromSelf<RenderUploadResponse>(
-        worker,
-        '/api/external/render-upload-card',
-        request.url,
-        {
-          card,
-          renderTemplate,
+      const colors = getDesignColors(carouselType);
+      const enrichedCards: GeneratedPublishSlide[] = cards.map((card, idx) => ({
+        id: `generated-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 10)}`,
+        ...card,
+        colors: {
+          bg: colors.bg,
+          text: colors.text,
+          accent: colors.accent,
         },
-        authorization
+        carouselType,
+        cardIndex: idx,
+        totalCards,
+        imageType: 'html',
+        order: idx,
+      }));
+
+      const imageUrls: string[] = [];
+
+      for (const card of enrichedCards) {
+        const uploadResult = await postJsonFromSelf<RenderUploadResponse>(
+          worker,
+          '/api/external/render-upload-card',
+          request.url,
+          {
+            card,
+            renderTemplate,
+          },
+          authorization
+        );
+
+        imageUrls.push(uploadResult.url);
+      }
+
+      const published = await publishCarouselWithUrls({
+        slides: enrichedCards,
+        caption: buildCaption(idea, body.caption),
+        imageUrls,
+        carouselTemplate,
+        instagramAccountId: body.instagramAccountId,
+      });
+
+      console.log(`[${jobId}] publicado:`, published.url);
+      return {
+        success: true,
+        postId: published.postId,
+        url: published.url,
+        cards: enrichedCards,
+        imageUrls,
+        carouselTemplate,
+        renderTemplate,
+        carouselType,
+        generatedAt: new Date().toISOString(),
+        prompt: {
+          fixed: [
+            'Generate carrossel using ideologico_detalhado as fixed mode',
+            IDEOLOGICO_DETALHADO_ICP,
+            IDEOLOGICO_DETALHADO_INSTRUCTIONS,
+          ],
+        },
+      };
+    };
+
+    if (process.env.NODE_ENV === 'production') {
+      ctx.waitUntil(
+        runPublishJob().catch((error) => {
+          console.error(`[${jobId}] job falhou:`, error);
+        })
       );
 
-      imageUrls.push(uploadResult.url);
+      return NextResponse.json(
+        {
+          success: true,
+          queued: true,
+          jobId,
+          message: 'Carrossel recebido e processamento iniciado.',
+        },
+        { status: 202 }
+      );
     }
 
-    const published = await publishCarouselWithUrls({
-      slides: enrichedCards,
-      caption: buildCaption(idea, body.caption),
-      imageUrls,
-      carouselTemplate,
-      instagramAccountId: body.instagramAccountId,
-    });
-
-    return NextResponse.json({
-      success: true,
-      postId: published.postId,
-      url: published.url,
-      cards: enrichedCards,
-      imageUrls,
-      carouselTemplate,
-      renderTemplate,
-      carouselType,
-      generatedAt: new Date().toISOString(),
-      prompt: {
-        fixed: [
-          'Generate carrossel using ideologico_detalhado as fixed mode',
-          IDEOLOGICO_DETALHADO_ICP,
-          IDEOLOGICO_DETALHADO_INSTRUCTIONS,
-        ],
-      },
-    });
+    const result = await runPublishJob();
+    return NextResponse.json(result);
   } catch (error) {
     if (error instanceof Error && error.name === 'UnauthorizedError') {
       return NextResponse.json({ error: error.message }, { status: 401 });
