@@ -27,6 +27,9 @@ Regras:
 - Extraia o princípio humano, emocional ou psicológico por trás do texto
 - Não cite Deus, Bíblia, oração, igreja, fé, salvação, evangelho ou termos equivalentes no texto final, a menos que o usuário peça explicitamente o oposto
 - Reescreva o conteúdo em linguagem laica, clara e aplicável à vida prática
+- Nunca use antítese, contraste forçado ou estrutura do tipo "não X, mas Y"
+- Não construa frases a partir de negação para depois afirmar o oposto
+- As afirmações devem surgir de forma natural, direta e afirmativa
 - Priorize temas como ansiedade, autocobrança, descanso, culpa, limite, presença, constância, equilíbrio e saúde emocional
 - O resultado precisa soar acolhedor, inteligente e aplicável para empresários, gestores e profissionais sob pressão
 - O texto final pode manter profundidade moral ou existencial, mas sem marcação religiosa explícita

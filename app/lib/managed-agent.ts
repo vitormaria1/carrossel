@@ -31,6 +31,8 @@ const CAROUSEL_SYSTEM_PROMPT = `Você é um especialista em copywriting para Ins
 🚫 RESTRIÇÃO DE FORMATAÇÃO:
 - NUNCA USE "--" (travessão duplo) em nenhum lugar do texto
 - NUNCA USE estruturas de antítese (não use "X... mas Y" ou "X vs Y")
+- NUNCA use construção por negação seguida de afirmação
+- Evite começar uma frase com "não" para depois corrigir com "mas" ou equivalente
 - Escreva com fluidez natural, sem contrastes forçados
 - Use "e" ao invés de "mas" quando possível
 
