@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { assertExternalApiAuthorized } from '@/lib/external-api';
 import { generateCarouselWithAgent, generateCarouselFallback } from '@/lib/managed-agent';
 import {
@@ -7,9 +8,7 @@ import {
   getDesignColors,
   type CarouselType,
 } from '@/lib/davi-narrative';
-import { renderCardToBase64Server, type ServerCarouselTemplate } from '@/lib/server-card-render';
-import { uploadBase64Images } from '@/lib/publish-images';
-import { publishCarouselWithUrls } from '@/lib/instagram-publish';
+import type { ServerCarouselTemplate } from '@/lib/server-card-render';
 
 interface GeneratePublishRequest {
   idea: string;
@@ -37,6 +36,10 @@ interface GeneratedPublishSlide {
   order: number;
 }
 
+interface RenderUploadResponse {
+  url: string;
+}
+
 function resolveCarouselType(value?: CarouselType | 'auto'): CarouselType {
   if (value && value !== 'auto') return value;
   return 'ideologico_detalhado';
@@ -48,9 +51,53 @@ function buildCaption(idea: string, caption?: string): string {
   return `Confira este carrossel sobre ${idea.slice(0, 80).trim()}.`;
 }
 
+async function postJsonFromSelf<T>(
+  worker: { fetch: typeof fetch },
+  path: string,
+  requestUrl: string,
+  payload: unknown,
+  authorization: string
+): Promise<T> {
+  const response = await worker.fetch(
+    new Request(new URL(path, requestUrl), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization,
+      },
+      body: JSON.stringify(payload),
+    })
+  );
+
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json')
+    ? await response.json()
+    : { error: await response.text() };
+
+  if (!response.ok) {
+    throw new Error(String((data as { error?: string }).error || `Falha em ${path}`));
+  }
+
+  return data as T;
+}
+
 export async function POST(request: NextRequest) {
   try {
     assertExternalApiAuthorized(request);
+    const { env } = getCloudflareContext();
+    const worker = env.WORKER_SELF_REFERENCE;
+
+    if (!worker?.fetch) {
+      return NextResponse.json(
+        {
+          error:
+            'WORKER_SELF_REFERENCE não está configurado. Essa rota depende do binding de serviço para dividir a execução.',
+        },
+        { status: 500 }
+      );
+    }
+
+    const authorization = request.headers.get('authorization') || '';
 
     const body = (await request.json()) as GeneratePublishRequest;
     const idea = body.idea?.trim();
@@ -104,22 +151,36 @@ export async function POST(request: NextRequest) {
       order: idx,
     }));
 
-    const base64Images = await Promise.all(
-      enrichedCards.map((card) => renderCardToBase64Server(card, renderTemplate))
-    );
+    const imageUrls: string[] = [];
 
-    const imageUrls = await uploadBase64Images(
-      base64Images,
-      enrichedCards.map((card) => card.headline)
-    );
+    for (const card of enrichedCards) {
+      const uploadResult = await postJsonFromSelf<RenderUploadResponse>(
+        worker,
+        '/api/external/render-upload-card',
+        request.url,
+        {
+          card,
+          renderTemplate,
+        },
+        authorization
+      );
 
-    const published = await publishCarouselWithUrls({
-      slides: enrichedCards,
-      caption: buildCaption(idea, body.caption),
-      imageUrls,
-      carouselTemplate,
-      instagramAccountId: body.instagramAccountId,
-    });
+      imageUrls.push(uploadResult.url);
+    }
+
+    const published = await postJsonFromSelf<{ success: boolean; postId: string; url: string }>(
+      worker,
+      '/api/publish-instagram',
+      request.url,
+      {
+        instagramAccountId: body.instagramAccountId,
+        slides: enrichedCards,
+        caption: buildCaption(idea, body.caption),
+        carouselTemplate,
+        imageUrls,
+      },
+      authorization
+    );
 
     return NextResponse.json({
       success: true,
