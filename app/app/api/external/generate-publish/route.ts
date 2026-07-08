@@ -61,7 +61,9 @@ export async function POST(request: NextRequest) {
     const renderTemplate: ServerCarouselTemplate =
       carouselTemplate === 'standard'
         ? 'standard'
-        : 'tweet';
+        : carouselTemplate === 'tweetExpanded'
+          ? 'tweetExpanded'
+          : 'tweet';
 
     if (!idea) {
       return NextResponse.json({ error: 'idea é obrigatório' }, { status: 400 });

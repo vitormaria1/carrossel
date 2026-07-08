@@ -17,6 +17,7 @@ export type ServerCarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded';
 
 const FONT_RUNTIME_DIR = join(os.tmpdir(), 'carrossel-fonts');
 const FONT_REGULAR = join(FONT_RUNTIME_DIR, 'Arial.ttf');
+const FONT_BOLD = join(FONT_RUNTIME_DIR, 'Arial-Bold.ttf');
 
 let fontsReady = false;
 
@@ -31,8 +32,17 @@ function ensureFontsLoaded() {
     fs.writeFileSync(FONT_REGULAR, Buffer.from(ARIAL_REGULAR_BASE64, 'base64'));
   }
 
+  if (!fs.existsSync(FONT_BOLD)) {
+    const boldFontPath = join(process.cwd(), 'lib', 'fonts', 'Arial-Bold.ttf');
+    const boldFontBuffer = fs.readFileSync(boldFontPath);
+    fs.writeFileSync(FONT_BOLD, boldFontBuffer);
+  }
+
   const regular = PImage.registerFont(FONT_REGULAR, 'Arial');
   regular.loadSync();
+
+  const bold = PImage.registerFont(FONT_BOLD, 'ArialBold');
+  bold.loadSync();
 
   fontsReady = true;
 }
@@ -41,8 +51,8 @@ function escapeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
-function setFont(ctx: PImage.Context, size: number) {
-  ctx.font = `${size}pt Arial`;
+function setFont(ctx: PImage.Context, size: number, bold = false) {
+  ctx.font = `${size}pt ${bold ? 'ArialBold' : 'Arial'}`;
 }
 
 function measureWidth(ctx: PImage.Context, text: string): number {
@@ -80,9 +90,10 @@ function drawLeftAlignedLines(
   startY: number,
   lineHeight: number,
   fontSize: number,
-  color = '#0C1014'
+  color = '#0C1014',
+  bold = false
 ) {
-  setFont(ctx, fontSize);
+  setFont(ctx, fontSize, bold);
   ctx.fillStyle = color;
   let y = startY;
 
@@ -226,9 +237,16 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
   }
 
   // Header text
-  setFont(ctx, 44);
-  ctx.fillStyle = '#000000';
-  ctx.fillText(profileName, profileX + profileImageSize + 30, profileY + 5);
+  drawLeftAlignedLines(
+    ctx,
+    [profileName],
+    profileX + profileImageSize + 30,
+    profileY + 5,
+    0,
+    44,
+    '#000000',
+    true
+  );
 
   setFont(ctx, 40);
   ctx.fillStyle = '#7A7A7A';
@@ -237,12 +255,22 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
   const textX = padding;
   const textY = profileY + profileImageSize + 50;
 
-  // Body copy
-  const bodyFontSize = 56;
+  const headline = card.headline?.trim() || '';
+  const headlineLines = headline ? wrapText(ctx, headline, textWidth, 44).slice(0, 2) : [];
+  const bodyFontSize = 34;
   const bodyLines = wrapText(ctx, card.text, textWidth, bodyFontSize);
-  drawLeftAlignedLines(ctx, bodyLines, textX, textY, 80, bodyFontSize, textColor);
 
-  let currentY = textY + bodyLines.length * 80;
+  let currentY = textY;
+
+  if (headlineLines.length) {
+    drawLeftAlignedLines(ctx, headlineLines, textX, currentY, 52, 44, '#0C1014', true);
+    currentY += headlineLines.length * 52 + 30;
+  }
+
+  // Body copy
+  drawLeftAlignedLines(ctx, bodyLines, textX, currentY, 46, bodyFontSize, textColor);
+
+  currentY += bodyLines.length * 46;
 
   if (card.imageUrl) {
     // The app uses a centered image below the text when the content includes one.
@@ -254,7 +282,7 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
       const imageWidth = Math.min(maxImageWidth, width - padding * 2);
       const imageHeight = (imageWidth * 9) / 16;
       const imageX = (width - imageWidth) / 2;
-      const imageStartY = currentY + 100;
+      const imageStartY = currentY + 50;
 
       drawRoundedImage(ctx, tweetImg, imageX, imageStartY, imageWidth, imageHeight, 20);
     }
@@ -302,7 +330,7 @@ function drawStandardCard(ctx: PImage.Context, card: ServerRenderCard) {
   const bodyLines = wrapText(ctx, body, 920, 40).slice(0, 10);
 
   if (headlineLines.length) {
-    drawLeftAlignedLines(ctx, headlineLines, 80, 255, 46, 36, text);
+    drawLeftAlignedLines(ctx, headlineLines, 80, 255, 46, 36, text, true);
   }
 
   drawLeftAlignedLines(ctx, bodyLines, 80, headlineLines.length ? 390 : 320, 40, 28, text);
