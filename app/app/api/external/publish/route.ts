@@ -83,6 +83,7 @@ async function renderAndUploadCards(
 export async function POST(request: NextRequest) {
   try {
     assertExternalApiAuthorized(request);
+    const { ctx } = getCloudflareContext();
 
     const body = (await request.json()) as ExternalPublishRequest;
     const slides = body.slides || body.cards || [];
@@ -102,51 +103,71 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let imageUrls = body.imageUrls || [];
+    const shouldQueueInProduction = process.env.NODE_ENV === 'production' && (hasBase64Images || hasCards);
+    const jobId = `pub-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-    if (hasBase64Images) {
-      if (body.base64Images!.length !== slides.length) {
-        return NextResponse.json(
-          { error: 'base64Images deve ter a mesma quantidade de slides' },
-          { status: 400 }
+    const runPublishJob = async () => {
+      let imageUrls = body.imageUrls || [];
+
+      if (hasBase64Images) {
+        if (body.base64Images!.length !== slides.length) {
+          throw new Error('base64Images deve ter a mesma quantidade de slides');
+        }
+
+        imageUrls = await uploadBase64Images(
+          body.base64Images!,
+          slides.map((slide) => slide.headline)
+        );
+      } else if (hasCards) {
+        const renderTemplate = body.renderTemplate || 'tweet';
+        imageUrls = await renderAndUploadCards(
+          request.url,
+          request.headers.get('authorization') || '',
+          body.cards!,
+          renderTemplate
         );
       }
 
-      imageUrls = await uploadBase64Images(
-        body.base64Images!,
-        slides.map((slide) => slide.headline)
-      );
-    } else if (hasCards) {
-      const renderTemplate = body.renderTemplate || 'tweet';
-      imageUrls = await renderAndUploadCards(
-        request.url,
-        request.headers.get('authorization') || '',
-        body.cards!,
-        renderTemplate
-      );
-    }
+      if (imageUrls.length !== slides.length) {
+        throw new Error('imageUrls deve ter a mesma quantidade de slides');
+      }
 
-    if (imageUrls.length !== slides.length) {
+      const published = await publishCarouselWithUrls({
+        slides,
+        caption: body.caption || '',
+        imageUrls,
+        carouselTemplate: body.carouselTemplate,
+        instagramAccountId: body.instagramAccountId,
+      });
+
+      return {
+        success: true,
+        postId: published.postId,
+        url: published.url,
+        imageUrls,
+      };
+    };
+
+    if (shouldQueueInProduction) {
+      ctx.waitUntil(
+        runPublishJob().catch((error) => {
+          console.error(`[${jobId}] publish falhou:`, error);
+        })
+      );
+
       return NextResponse.json(
-        { error: 'imageUrls deve ter a mesma quantidade de slides' },
-        { status: 400 }
+        {
+          success: true,
+          queued: true,
+          jobId,
+          message: 'Publicação recebida e processamento iniciado.',
+        },
+        { status: 202 }
       );
     }
 
-    const published = await publishCarouselWithUrls({
-      slides,
-      caption: body.caption || '',
-      imageUrls,
-      carouselTemplate: body.carouselTemplate,
-      instagramAccountId: body.instagramAccountId,
-    });
-
-    return NextResponse.json({
-      success: true,
-      postId: published.postId,
-      url: published.url,
-      imageUrls,
-    });
+    const result = await runPublishJob();
+    return NextResponse.json(result);
   } catch (error) {
     if (error instanceof Error && error.name === 'UnauthorizedError') {
       return NextResponse.json({ error: error.message }, { status: 401 });
