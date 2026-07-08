@@ -17,7 +17,6 @@ export type ServerCarouselTemplate = 'standard' | 'tweet' | 'tweetExpanded';
 
 const FONT_RUNTIME_DIR = join(os.tmpdir(), 'carrossel-fonts');
 const FONT_REGULAR = join(FONT_RUNTIME_DIR, 'Arial.ttf');
-const FONT_BOLD = join(FONT_RUNTIME_DIR, 'Arial-Bold.ttf');
 
 let fontsReady = false;
 
@@ -32,17 +31,8 @@ function ensureFontsLoaded() {
     fs.writeFileSync(FONT_REGULAR, Buffer.from(ARIAL_REGULAR_BASE64, 'base64'));
   }
 
-  if (!fs.existsSync(FONT_BOLD)) {
-    const boldFontPath = join(process.cwd(), 'lib', 'fonts', 'Arial-Bold.ttf');
-    const boldFontBuffer = fs.readFileSync(boldFontPath);
-    fs.writeFileSync(FONT_BOLD, boldFontBuffer);
-  }
-
   const regular = PImage.registerFont(FONT_REGULAR, 'Arial');
   regular.loadSync();
-
-  const bold = PImage.registerFont(FONT_BOLD, 'ArialBold');
-  bold.loadSync();
 
   fontsReady = true;
 }
@@ -51,8 +41,8 @@ function escapeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
-function setFont(ctx: PImage.Context, size: number, bold = false) {
-  ctx.font = `${size}pt ${bold ? 'ArialBold' : 'Arial'}`;
+function setFont(ctx: PImage.Context, size: number) {
+  ctx.font = `${size}pt Arial`;
 }
 
 function measureWidth(ctx: PImage.Context, text: string): number {
@@ -90,15 +80,35 @@ function drawLeftAlignedLines(
   startY: number,
   lineHeight: number,
   fontSize: number,
-  color = '#0C1014',
-  bold = false
+  color = '#0C1014'
 ) {
-  setFont(ctx, fontSize, bold);
+  setFont(ctx, fontSize);
   ctx.fillStyle = color;
   let y = startY;
 
   for (const line of lines) {
     ctx.fillText(line, x, y);
+    y += lineHeight;
+  }
+}
+
+function drawPseudoBoldLines(
+  ctx: PImage.Context,
+  lines: string[],
+  x: number,
+  startY: number,
+  lineHeight: number,
+  fontSize: number,
+  color = '#0C1014'
+) {
+  setFont(ctx, fontSize);
+  ctx.fillStyle = color;
+  let y = startY;
+
+  for (const line of lines) {
+    ctx.fillText(line, x, y);
+    ctx.fillText(line, x + 0.8, y);
+    ctx.fillText(line, x, y + 0.8);
     y += lineHeight;
   }
 }
@@ -244,8 +254,7 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
     profileY + 5,
     0,
     44,
-    '#000000',
-    true
+    '#000000'
   );
 
   setFont(ctx, 40);
@@ -263,7 +272,7 @@ async function drawTweetCard(ctx: PImage.Context, card: ServerRenderCard) {
   let currentY = textY;
 
   if (headlineLines.length) {
-    drawLeftAlignedLines(ctx, headlineLines, textX, currentY, 52, 44, '#0C1014', true);
+    drawPseudoBoldLines(ctx, headlineLines, textX, currentY, 52, 44, '#0C1014');
     currentY += headlineLines.length * 52 + 30;
   }
 
@@ -330,7 +339,7 @@ function drawStandardCard(ctx: PImage.Context, card: ServerRenderCard) {
   const bodyLines = wrapText(ctx, body, 920, 40).slice(0, 10);
 
   if (headlineLines.length) {
-    drawLeftAlignedLines(ctx, headlineLines, 80, 255, 46, 36, text, true);
+    drawPseudoBoldLines(ctx, headlineLines, 80, 255, 46, 36, text);
   }
 
   drawLeftAlignedLines(ctx, bodyLines, 80, headlineLines.length ? 390 : 320, 40, 28, text);
