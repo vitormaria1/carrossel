@@ -35,7 +35,7 @@ const DASHBOARD_CARDS = [
   {
     title: 'FINANCEIRO',
     href: '/financeiro',
-    description: 'Central integrada',
+    description: 'Sistema unificado',
     orbitClassName: 'orbit-card orbit-card-top',
   },
 ] as const;
