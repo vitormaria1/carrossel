@@ -1,76 +1,47 @@
-# ✅ Status do Projeto - Carrossel App
+# Status do Projeto - Carrossel App
 
-## Limpeza Realizada
+## Estado Atual
 
-✅ Deletados arquivos desnecessários:
-- Manuais e passo a passo
-- Documentação duplicada
-- Testes de desenvolvimento
-- Scripts de análise não essenciais
-- Exemplos locais
+O produto ativo do repositório e o app Next.js em `app/`.
+O fluxo Python legado na raiz existe como referencia historica, mas nao representa mais a operacao principal.
 
-## O Que Restou (ESSENCIAL)
+## Modulos Ativos
 
-### 📁 Arquivos Principais:
-- `app_web.py` - Aplicação web interativa
-- `carousel_copy_generator.py` - Engine de geração (CORE)
-- `carousel_agent_managed.py` - Modo avançado (opcional)
-- `templates/index.html` - Interface visual
+- `Consultorio`: area principal para criar, editar, exportar e publicar carrosseis.
+- `Financeiro`: modulo integrado para caixa, recorrencias, reservas e historico financeiro.
+- `Login`: protecao de acesso via cookie de sessao.
 
-### ⚙️ Configuração:
-- `requirements-carousel.txt` - Dependências
-- `.env` - API Key
-- `CLAUDE.md` - Diretrizes do projeto
+## O Que Esta Funcionando
 
-### 📚 Referência:
-- `DAVI_ANALYSIS.md` - Análise de @soudaviribas
-- `davi_analysis.json` - Dados estruturados
-- `README.md` - Como usar (LIMPO)
+- Geracao de carrosseis com `standard`, `tweet`, `tweetExpanded` e `vanderMaria`.
+- Geração via `/api/generate` e `/api/generate-agent`.
+- Upload de documentos para enriquecer briefing.
+- Publicacao de carrosseis via Instagram e webhook de imagens publicas.
+- Area financeira com pagina consolidada em `/financeiro` e detalhamento por area em `/financeiro/[area]`.
 
----
+## Dependencias Importantes
 
-## 🎯 Próxima Etapa
+- `ANTHROPIC_API_KEY` para geracao principal.
+- `DATABASE_URL` para ativar o modulo Financeiro.
+- `INSTAGRAM_ACCESS_TOKEN` e `INSTAGRAM_BUSINESS_ACCOUNT_ID` para publicacao.
+- `N8N_WEBHOOK_URL` para hospedar imagens publicas antes da publicacao.
 
-Integrar a aplicação web DENTRO de um projeto existente.
+## Estrutura Relevante
 
-**Pergunta:** Você já tem um projeto React/Next.js/Vue ou é para criar um?
-
----
-
-## 📊 Estrutura Atual
-
-```
+```txt
 carrossel/
-├── app_web.py                      ⭐ APLICAÇÃO PRINCIPAL
-├── carousel_copy_generator.py      ⭐ ENGINE (CORE)
-├── carousel_agent_managed.py       ⭐ AVANÇADO
-├── templates/
-│   └── index.html                  ⭐ UI
-├── app/                            (estrutura Next.js)
-├── skills/                         (skills reutilizáveis)
-├── .env                            ⚙️ Configuração
-├── requirements-carousel.txt       ⚙️ Python deps
-├── README.md                       📚 Documentação
-├── CLAUDE.md                       📚 Project guide
-└── DAVI_ANALYSIS.md               📚 Referência
+├── app/                    # Aplicacao principal em Next.js
+│   ├── app/                # Rotas, paginas e componentes
+│   ├── lib/                # Estado, integracoes e servicos
+│   └── public/             # Assets estaticos
+├── skills/                 # Biblioteca de skills reutilizaveis
+├── README.md               # Visao geral do projeto
+├── app/README.md           # Documentacao da aplicacao
+└── DAVI_ANALYSIS.md        # Referencia de narrativa e posicionamento
 ```
 
----
+## Proximos Passos Sugeridos
 
-## 🚀 Como Usar Agora
-
-```bash
-# 1. Instalar
-pip3 install -r requirements-carousel.txt
-
-# 2. Configurar
-echo "ANTHROPIC_API_KEY=sua-chave" > .env
-
-# 3. Rodar
-python3 app_web.py
-
-# 4. Abrir
-http://localhost:5000
-```
-
-Tudo limpo e pronto! 🎉
+1. Expandir o modulo Financeiro com mais areas e operacoes.
+2. Refinar o fluxo de publicacao e agendamento.
+3. Unificar a documentacao antiga com o estado atual do app.

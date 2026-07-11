@@ -79,8 +79,8 @@ export default function CentralClient() {
               Hub principal
             </p>
             <p className="mt-4 text-base leading-7 text-[#54483f] md:text-lg">
-              Cada frente do ecossistema nasce daqui. Por enquanto, a automação ativa está dentro de
-              CONSULTÓRIO.
+              Cada frente do ecossistema nasce daqui. As áreas ativas hoje sao CONSULTÓRIO e
+              FINANCEIRO.
             </p>
           </div>
 
