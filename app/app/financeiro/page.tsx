@@ -2,7 +2,6 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { loadFinanceOverview } from "@/lib/finance-system";
 import { financeAreaMeta } from "@/lib/finance-meta";
-import { isFinanceDatabaseConfigured } from "@/lib/finance-env";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(amount);
@@ -14,10 +13,6 @@ function formatDate(value: string) {
 
 export default async function FinanceiroPage() {
   noStore();
-
-  if (!isFinanceDatabaseConfigured()) {
-    return <FinanceUnavailablePage />;
-  }
 
   let overview;
   try {

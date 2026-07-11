@@ -3,6 +3,7 @@ import type { AreaKey } from "@/lib/financial-schema";
 import { getAccountBalance, listFinancialMovements, type AccountBalance, type FinancialMovement } from "@/lib/financial-workspace";
 import { listReserveGoals, type ReserveGoal } from "@/lib/reserve-goals";
 import { financeAreaMeta, financeAreaOrder, type FinanceAreaMeta } from "@/lib/finance-meta";
+import { isFinanceDatabaseConfigured } from "@/lib/finance-env";
 
 type AreaSnapshot = {
   area: AreaKey;
@@ -325,6 +326,10 @@ function isEmptyFinancialData(
 }
 
 export async function loadFinanceOverview(): Promise<FinanceOverview> {
+  if (!isFinanceDatabaseConfigured()) {
+    return buildDemoOverview();
+  }
+
   const [itemsByArea, balancesByArea, movementsByArea, reservesByArea] = await Promise.all([
     Promise.all(financeAreaOrder.map((area) => listFinancialItems(area))),
     Promise.all(financeAreaOrder.map((area) => getAccountBalance(area))),
@@ -379,6 +384,20 @@ export async function loadFinanceOverview(): Promise<FinanceOverview> {
 }
 
 export async function loadFinanceArea(area: AreaKey): Promise<FinanceAreaSnapshot> {
+  if (!isFinanceDatabaseConfigured()) {
+    const seed = DEMO_SEEDS[area];
+    const snapshot = buildAreaSnapshot(area, seed);
+
+    return {
+      ...snapshot,
+      pendingCount: seed.items.filter((item) => item.category !== "Entrada fixa" && !item.paid).length,
+      recurringCount: seed.items.filter((item) => item.recurring).length,
+      totalReserveTarget: seed.reserves.reduce((sum, goal) => sum + goal.targetAmount, 0),
+      totalReserveCurrent: seed.reserves.reduce((sum, goal) => sum + goal.currentAmount, 0),
+      isDemo: true
+    };
+  }
+
   const [items, balance, movements, reserves] = await Promise.all([
     listFinancialItems(area),
     getAccountBalance(area),

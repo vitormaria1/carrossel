@@ -3,7 +3,6 @@ import { unstable_noStore as noStore } from "next/cache";
 import { financeAreaOrder } from "@/lib/finance-meta";
 import { loadFinanceArea } from "@/lib/finance-system";
 import { FinanceiroAreaClient } from "../financeiro-area-client";
-import { isFinanceDatabaseConfigured } from "@/lib/finance-env";
 
 function isAreaKey(value: string) {
   return (financeAreaOrder as readonly string[]).includes(value);
@@ -20,10 +19,6 @@ export default async function FinanceiroAreaPage({
 
   if (!isAreaKey(area)) {
     notFound();
-  }
-
-  if (!isFinanceDatabaseConfigured()) {
-    return <FinanceUnavailableArea title={area} />;
   }
 
   let snapshot;
