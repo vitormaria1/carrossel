@@ -481,6 +481,12 @@ export function FinanceiroAreaClient({ snapshot }: FinanceiroAreaClientProps) {
         </div>
       ) : null}
 
+      {snapshot.isDemo ? (
+        <div className="rounded-[1.25rem] border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+          Área em modo de exemplo. Quando o banco tiver registros reais, este painel passa a usar os dados persistidos.
+        </div>
+      ) : null}
+
       {view === 'overview' ? (
         <section className="grid gap-4 md:grid-cols-3">
           <MetricCard label="Saldo atual" value={formatCurrency(balance.currentBalance)} tone="finance" />

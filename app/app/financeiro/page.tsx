@@ -52,6 +52,12 @@ function FinanceOverviewView({ overview }: { overview: Awaited<ReturnType<typeof
           </div>
         </header>
 
+        {overview.isDemo ? (
+          <section className="rounded-[1.5rem] border border-amber-400/30 bg-amber-400/10 px-5 py-4 text-sm text-amber-100">
+            Financeiro em modo de exemplo. Quando `DATABASE_URL` estiver populado com dados reais, este painel passa a refletir o banco.
+          </section>
+        ) : null}
+
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard label="Saldo consolidado" value={formatCurrency(overview.totalBalance)} />
           <MetricCard label="Pendencias" value={String(overview.pendingCount)} />
