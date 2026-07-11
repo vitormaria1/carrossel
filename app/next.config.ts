@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/external/generate-publish': ['./lib/fonts/**/*.ttf'],
   },
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false;
+    }
+
+    return config;
+  },
   turbopack: {
     root: configDir,
   },
