@@ -29,6 +29,15 @@ interface GenerateImageResponse {
   error?: string;
 }
 
+type GeminiInlineData = {
+  mimeType?: string;
+  data?: string;
+};
+
+type GeminiPart = {
+  inlineData?: GeminiInlineData;
+};
+
 export async function POST(req: NextRequest): Promise<NextResponse<GenerateImageResponse>> {
   try {
     const { slideType, textInScreen, highlights = [], ctaButtonText } = (await req.json()) as GenerateImageRequest;
@@ -137,9 +146,14 @@ Remember: include the tweet header at the top and the standard footer at the bot
       );
     }
 
-    console.log('📦 Parts in response:', parts.length, 'Types:', parts.map((p: any) => Object.keys(p).join(',')));
+    console.log(
+      '📦 Parts in response:',
+      parts.length,
+      'Types:',
+      (parts as GeminiPart[]).map((part) => Object.keys(part).join(','))
+    );
 
-    const imagePart = parts.find((part: any) => part.inlineData);
+    const imagePart = (parts as GeminiPart[]).find((part) => part.inlineData);
 
     if (!imagePart?.inlineData) {
       console.error('❌ No inlineData in parts. Parts count:', parts.length, 'Keys:', parts[0] ? Object.keys(parts[0]) : 'N/A');

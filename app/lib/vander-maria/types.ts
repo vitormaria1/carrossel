@@ -15,7 +15,7 @@ export interface VanderMariaSlideContent {
   generatedImageUrl?: string;   // After Gemini generates (Types 1-2 only)
 }
 
-export interface VanderMariaCard extends Record<string, any> {
+export interface VanderMariaCard extends Record<string, unknown> {
   id: string;
   carouselTemplate: 'vanderMaria';
   slideType: VanderSlideType;
