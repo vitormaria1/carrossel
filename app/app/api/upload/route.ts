@@ -7,10 +7,6 @@ function getAnthropicClient() {
   return new Anthropic();
 }
 
-type AnthropicUploadOptions = NonNullable<
-  Parameters<ReturnType<typeof getAnthropicClient>['beta']['files']['upload']>[1]
->;
-
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -30,9 +26,7 @@ export async function POST(req: NextRequest) {
       {
         file: new File([buffer], file.name, { type: file.type })
       },
-      {
-        headers: { 'anthropic-beta': 'files-api-2025-04-14' }
-      } satisfies AnthropicUploadOptions
+      { headers: { 'anthropic-beta': 'files-api-2025-04-14' } } as any
     );
 
     fs.unlinkSync(filepath);

@@ -66,7 +66,7 @@ export async function generateVanderMariaCarousel(
   // STEP 2: Generate images for ALL 5 types (SEQUENTIALLY to avoid rate limit)
   onProgress?.('Gerando imagens para todos os 5 slides...');
 
-  const images: Record<number, GenerateImageResponse | null> = {};
+  let images: { [key: number]: GenerateImageResponse | null } = {};
 
   try {
     // Sequential generation with delay between requests
@@ -235,15 +235,9 @@ export async function renderVanderMariaCardToBase64(
   const { renderVanderType1, renderVanderType2, renderVanderType3, renderVanderType4, renderVanderType5 } = await import('./canvas-renderers');
 
   // Garantir que fonts carregaram
-  const documentWithFonts = document as Document & {
-    fonts?: {
-      ready: Promise<unknown>;
-    };
-  };
-
-  if (typeof documentWithFonts.fonts !== 'undefined') {
+  if (typeof (document as any).fonts !== 'undefined') {
     try {
-      await documentWithFonts.fonts.ready;
+      await (document as any).fonts.ready;
     } catch (e) {
       console.warn('Fonts may not have loaded:', e);
     }

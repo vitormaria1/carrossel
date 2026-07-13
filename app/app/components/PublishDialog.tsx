@@ -138,7 +138,7 @@ export function PublishDialog({ cards, isOpen, onClose }: PublishDialogProps) {
                   2
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Clique em Criar e depois Carrossel</h3>
+                  <h3 className="font-semibold text-gray-900">Clique em "Criar" → "Carrossel"</h3>
                   <p className="text-sm text-gray-600">Ou toque no ícone + para novo post</p>
                 </div>
               </div>
@@ -168,7 +168,7 @@ export function PublishDialog({ cards, isOpen, onClose }: PublishDialogProps) {
                   5
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Clique em Compartilhar</h3>
+                  <h3 className="font-semibold text-gray-900">Clique "Compartilhar"</h3>
                   <p className="text-sm text-gray-600">E pronto! Seu carrossel está live 🎉</p>
                 </div>
               </div>

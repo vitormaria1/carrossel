@@ -116,16 +116,7 @@ export const DAVI_DESIGN_SYSTEM = {
  * Retorna CSS e layout para canvas rendering
  */
 export function getInstagramCardLayout(position: 'top' | 'middle' | 'bottom' = 'middle') {
-  type InstagramCardLayout = {
-    headlineY: number;
-    textY: number;
-    ctaY: number;
-    headlineSize: number;
-    textSize: number;
-    ctaSize: number;
-  };
-
-  const layouts: Record<'top' | 'middle' | 'bottom', InstagramCardLayout> = {
+  const layouts: Record<string, any> = {
     top: {
       headlineY: 300,
       textY: 600,
@@ -160,7 +151,8 @@ export function getInstagramCardLayout(position: 'top' | 'middle' | 'bottom' = '
  */
 export function getCardPreviewStyle(
   bgColor: string,
-  textColor: string
+  textColor: string,
+  accentColor: string
 ): React.CSSProperties {
   return {
     background: bgColor,
@@ -234,9 +226,9 @@ export function adjustBrightness(hex: string, percent: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
   const amt = Math.round(2.55 * percent);
 
-  const R = Math.max(0, Math.min(255, (num >> 16) + amt));
-  const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
-  const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+  let R = Math.max(0, Math.min(255, (num >> 16) + amt));
+  let G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+  let B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
 
   return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
 }
